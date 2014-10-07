@@ -35,9 +35,9 @@ class User(models.Model):
     name = models.CharField(max_length=100)
     profile_pic = models.CharField(max_length=200)
 
-    restaurants_following = models.ManyToManyField(Restaurant, related_name="restaurants_following")
-    foods_liked = models.ManyToManyField(Food, related_name="foods_liked")
-    friends = models.ManyToManyField('self')
+    restaurants_following = models.ManyToManyField(Restaurant, null=True, blank=True, related_name="restaurants_following")
+    foods_liked = models.ManyToManyField(Food, null=True, blank=True, related_name="foods_liked")
+    friends = models.ManyToManyField('self', null=True, blank=True)
 
     def __unicode__(self):
         return self.username
