@@ -24,7 +24,7 @@ def FoodListView(request):
         food_obj['name'] = food.name
         food_obj['description'] = food.description
         food_obj['price'] = str(food.price)
-        food_obj['photo'] = food.name
+        food_obj['photo'] = food.photo
         food_obj['is_halal'] = food.is_halal
         food_obj['is_vegan'] = food.is_vegan
         food_obj['is_liked'] = food.is_liked
