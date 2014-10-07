@@ -14,9 +14,11 @@ def test(request):
     return HttpResponse("hello")
 
 @csrf_exempt
-def FoodListView(request):
+def FoodListView(request, username):
     food_list = Food.objects.all()
     food_list_serialized = []
+
+    user = User.objects.get(username=username)
 
     for food in food_list:
 
@@ -24,13 +26,15 @@ def FoodListView(request):
         food_obj['name'] = food.name
         food_obj['description'] = food.description
         food_obj['price'] = '${0:0.2f}'.format(food.price)
-        food_obj['num_likes'] = food.num_likes
+
         food_obj['photo'] = food.photo
         food_obj['is_halal'] = food.is_halal
         food_obj['is_vegan'] = food.is_vegan
-        food_obj['is_liked'] = food.is_liked
         food_obj['cuisine'] = food.cuisine
         food_obj['restaurant'] = food.restaurant.name
+
+        food_obj['is_liked'] = food in user.foods_liked.all()
+        food_obj['num_likes'] = User.objects.filter(foods_liked__in=[food]).count()
 
         food_list_serialized.append(food_obj)
 
