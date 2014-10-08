@@ -13,7 +13,7 @@ class Restaurant(models.Model):
     telephone = models.CharField(max_length=20)
     email = models.CharField(max_length=50)
     opening_hours = models.CharField(max_length=300)
-    is_following = models.BooleanField(default=False)
+    is_recommended = models.BooleanField(default=False)
     def __unicode__(self):
         return self.name
 
