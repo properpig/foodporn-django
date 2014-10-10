@@ -97,7 +97,7 @@ def RecommendedRestaurantsListView(request, username):
 
     user_restaurants_ids = [r.id for r in user.restaurants_following.all()]
 
-    recommended_restaurants = Restaurant.objects.filter(is_recommended=True).exclude(id__in=user_restaurants_ids)
+    recommended_restaurants = Restaurant.objects.filter(is_recommended=True)
     restaurants_list = []
 
     for restaurant in recommended_restaurants:
@@ -110,8 +110,10 @@ def RecommendedRestaurantsListView(request, username):
         restaurant_obj['price_high'] = '${0:0.0f}'.format(restaurant.price_high)
 
         # get the people following this restaurant
-        restaurant_obj['followed_by'] = [{'username': user.username, 'profile_pic': user.profile_pic} for user in User.objects.filter(restaurants_following__in=[restaurant])]
-        restaurant_obj['following_count'] = len(restaurant_obj['followed_by'])
+        restaurant_obj['followed_by'] = [{'user_id':user.id, 'username': user.username, 'profile_pic': user.profile_pic} for user in User.objects.filter(restaurants_following__in=[restaurant])[:7]]
+        restaurant_obj['following_count'] = User.objects.filter(restaurants_following__in=[restaurant]).count()
+
+        restaurant_obj['is_following'] = (restaurant.id in user_restaurants_ids)
 
         restaurants_list.append(restaurant_obj)
 

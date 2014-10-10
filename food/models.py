@@ -48,3 +48,12 @@ class Review(models.Model):
     rating = models.IntegerField()
     def __unicode__(self):
         return self.user.username + " " + self.rating
+
+class DealsActivity(models.Model):
+    title = models.CharField(max_length=200)
+    photo = models.CharField(max_length=200)
+    restaurant = models.ForeignKey(Restaurant, null=True, blank=True)
+    details = models.CharField(max_length=300)
+    more_details = models.CharField(max_length=500)
+    def __unicode__(self):
+        return self.title + " by " + self.restaurant.name
