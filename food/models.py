@@ -47,7 +47,7 @@ class Review(models.Model):
     photo = models.CharField(max_length=200)
     rating = models.IntegerField()
     def __unicode__(self):
-        return self.user.username + " " + self.rating
+        return self.user.username + ": " + str(self.rating)
 
 class DealsActivity(models.Model):
     title = models.CharField(max_length=200)
@@ -57,3 +57,27 @@ class DealsActivity(models.Model):
     more_details = models.CharField(max_length=500)
     def __unicode__(self):
         return self.title + " by " + self.restaurant.name
+
+class FriendsActivity(models.Model):
+
+    activity_choices = {
+        'follow_friend', # supply actor and friend
+        'follow_restaurant', # supply actor and restaurant
+        'achievement', # supply actor
+        'review' # supply review
+    }
+
+    actor = models.ForeignKey(User, null=True, blank=True, related_name="actor")
+    friend = models.ForeignKey(User, null=True, blank= True, related_name="friend")
+    restaurant = models.ForeignKey(Restaurant, null=True, blank= True)
+    activity_type = models.CharField(max_length=20)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    review = models.ForeignKey(Review, null=True, blank=True)
+
+    def __unicode__(self):
+        if self.actor:
+            name = self.actor.name
+        else:
+            name = self.review.user.name
+        return self.activity_type + ": " + name
+

@@ -6,7 +6,7 @@ from django.core import serializers
 
 from food.models import *
 
-import json, decimal
+import json, decimal, time
 
 # Create your views here.
 @csrf_exempt
@@ -118,3 +118,62 @@ def RecommendedRestaurantsListView(request, username):
         restaurants_list.append(restaurant_obj)
 
     return HttpResponse(json.dumps(restaurants_list), content_type="application/json")
+
+@csrf_exempt
+def DealsActivityListView(request):
+
+    deals = DealsActivity.objects.all()
+    deals_list = []
+
+    for deal in deals:
+
+        deal_obj = {}
+        deal_obj['title'] = deal.title
+        deal_obj['photo'] = deal.photo
+        deal_obj['restaurant'] = deal.restaurant.name
+        deal_obj['details'] = deal.details
+        deal_obj['more'] = deal.more_details
+
+        deals_list.append(deal_obj)
+
+    return HttpResponse(json.dumps(deals_list), content_type="application/json")
+
+@csrf_exempt
+def FriendsActivityListView(request, username):
+
+    activities = FriendsActivity.objects.all()
+    activity_list = []
+
+    for activity in activities:
+        activity_obj = {}
+        activity_obj['type'] = activity.activity_type
+        activity_obj['timestamp'] = activity.timestamp.strftime("%d/%m/%y %H:%M")
+
+        if activity.actor:
+            activity_obj['actor'] = activity.actor.name
+            activity_obj['actor_id'] = activity.actor.id
+
+        if activity.friend:
+            activity_obj['friend'] = activity.friend.name
+            activity_obj['friend_id'] = activity.friend.id
+
+        if activity.restaurant:
+            activity_obj['restaurant'] = activity.restaurant.name
+            activity_obj['restaurant_id'] = activity.restaurant.id
+
+        if activity.review:
+            activity_obj['actor'] = activity.review.user.name
+            activity_obj['actor_id'] = activity.review.user.id
+            activity_obj['restaurant'] = activity.review.restaurant.name
+            activity_obj['restaurant_id'] = activity.review.restaurant.id
+            activity_obj['photo'] = activity.review.photo
+            activity_obj['rating'] = activity.review.rating
+
+        if activity_obj['type'] == "achievement":
+            activity_obj['foods'] = [{'food_photo': food.photo, 'food_id': food.id} for food in activity.actor.foods_liked.all()[:7]]
+
+        activity_list.append(activity_obj)
+
+    return HttpResponse(json.dumps(activity_list), content_type="application/json")
+
+
