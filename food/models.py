@@ -33,6 +33,7 @@ class User(models.Model):
     username = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
     profile_pic = models.CharField(max_length=200)
+    is_recommended = models.BooleanField(default=False)
 
     restaurants_following = models.ManyToManyField(Restaurant, null=True, blank=True, related_name="restaurants_following")
     foods_liked = models.ManyToManyField(Food, null=True, blank=True, related_name="foods_liked")

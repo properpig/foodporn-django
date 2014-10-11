@@ -82,6 +82,7 @@ def FollowingRestaurantsListView(request, username):
 
         restaurant_obj = {}
         restaurant_obj['name'] = restaurant.name
+        restaurant_obj['id'] = restaurant.id
         restaurant_obj['location_name'] = restaurant.location_name
         restaurant_obj['photo'] = restaurant.photo
         restaurant_obj['price_low'] = '${0:0.0f}'.format(restaurant.price_low)
@@ -105,6 +106,7 @@ def RecommendedRestaurantsListView(request, username):
 
         restaurant_obj = {}
         restaurant_obj['name'] = restaurant.name
+        restaurant_obj['id'] = restaurant.id
         restaurant_obj['location_name'] = restaurant.location_name
         restaurant_obj['photo'] = restaurant.photo
         restaurant_obj['price_low'] = '${0:0.0f}'.format(restaurant.price_low)
@@ -132,6 +134,7 @@ def DealsActivityListView(request):
         deal_obj['title'] = deal.title
         deal_obj['photo'] = deal.photo
         deal_obj['restaurant'] = deal.restaurant.name
+        deal_obj['restaurant_id'] = deal.restaurant.id
         deal_obj['details'] = deal.details
         deal_obj['more'] = deal.more_details
 
@@ -142,7 +145,7 @@ def DealsActivityListView(request):
 @csrf_exempt
 def FriendsActivityListView(request, username):
 
-    activities = FriendsActivity.objects.all()
+    activities = FriendsActivity.objects.all().order_by('-timestamp')
     activity_list = []
 
     for activity in activities:
