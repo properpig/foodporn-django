@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.core import serializers
 
 from food.models import *
+from utils import timesince
 
 import json, decimal, time
 
@@ -147,25 +148,30 @@ def FriendsActivityListView(request, username):
     for activity in activities:
         activity_obj = {}
         activity_obj['type'] = activity.activity_type
-        activity_obj['timestamp'] = activity.timestamp.strftime("%d/%m/%y %H:%M")
+        activity_obj['timestamp'] = timesince(activity.timestamp)
 
         if activity.actor:
             activity_obj['actor'] = activity.actor.name
             activity_obj['actor_id'] = activity.actor.id
+            activity_obj['actor_photo'] = activity.actor.profile_pic
 
         if activity.friend:
             activity_obj['friend'] = activity.friend.name
             activity_obj['friend_id'] = activity.friend.id
+            activity_obj['friend_photo'] = activity.friend.profile_pic
 
         if activity.restaurant:
             activity_obj['restaurant'] = activity.restaurant.name
             activity_obj['restaurant_id'] = activity.restaurant.id
+            activity_obj['restaurant_photo'] = activity.restaurant.photo
 
         if activity.review:
             activity_obj['actor'] = activity.review.user.name
             activity_obj['actor_id'] = activity.review.user.id
+            activity_obj['actor_photo'] = activity.review.user.profile_pic
             activity_obj['restaurant'] = activity.review.restaurant.name
             activity_obj['restaurant_id'] = activity.review.restaurant.id
+            activity_obj['restaurant_photo'] = activity.review.restaurant.photo
             activity_obj['photo'] = activity.review.photo
             activity_obj['rating'] = activity.review.rating
 
