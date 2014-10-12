@@ -195,6 +195,7 @@ def DealsActivityListView(request):
         deal_obj['title'] = deal.title
         deal_obj['photo'] = deal.photo
         deal_obj['restaurant'] = deal.restaurant.name
+        deal_obj['restaurant_id'] = deal.restaurant.id
         deal_obj['description'] = deal.restaurant.id
         deal_obj['details'] = deal.details
         deal_obj['more'] = deal.more_details
