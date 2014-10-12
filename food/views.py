@@ -142,6 +142,48 @@ def RecommendedRestaurantsListView(request, username):
     return HttpResponse(json.dumps(restaurants_list), content_type="application/json")
 
 @csrf_exempt
+def RestaurantView(request, restaurant_id, username):
+
+    user = User.objects.get(username=username)
+    restaurant = Restaurant.objects.get(id=restaurant_id)
+
+    restaurant_obj = {}
+    restaurant_obj['name'] = restaurant.name
+    restaurant_obj['photo'] = restaurant.photo
+    restaurant_obj['description'] = restaurant.description
+    restaurant_obj['price_low'] = '${0:0.0f}'.format(restaurant.price_low)
+    restaurant_obj['price_high'] = '${0:0.0f}'.format(restaurant.price_high)
+    restaurant_obj['location_name'] = restaurant.location_name
+
+    restaurant_obj['telephone'] = restaurant.telephone
+    restaurant_obj['email'] = restaurant.email
+    restaurant_obj['opening_hours'] = restaurant.opening_hours
+
+    restaurant_obj['followed_by'] = [{'user_id':user.id, 'username': user.username, 'profile_pic': user.profile_pic} for user in User.objects.filter(restaurants_following__in=[restaurant])[:7]]
+    restaurant_obj['following_count'] = User.objects.filter(restaurants_following__in=[restaurant]).count()
+
+    reviews = Review.objects.filter(restaurant__in=[restaurant])
+    if reviews.count():
+        rating = 0
+        for review in reviews:
+            rating = rating + review.rating
+        rating = rating / reviews.count()
+    else:
+        rating = 0
+
+    restaurant_obj['rating'] = rating
+    restaurant_obj['reviews_count'] = reviews.count()
+    restaurant_obj['reviews'] = [{'id': review.id, 'photo': review.photo} for review in reviews]
+
+    restaurant_obj['foods'] = [{'id': food.id, 'photo': food.photo} for food in Food.objects.filter(restaurant=restaurant)]
+    restaurant_obj['food_count'] = Food.objects.filter(restaurant=restaurant).count()
+
+    deals = DealsActivity.objects.filter(restaurant__in=[restaurant])
+    restaurant_obj['deals'] = [{'title': deal.title, 'photo': deal.photo, 'details': deal.details, 'more': deal.more_details} for deal in deals]
+
+    return HttpResponse(json.dumps(restaurant_obj), content_type="application/json")
+
+@csrf_exempt
 def DealsActivityListView(request):
 
     deals = DealsActivity.objects.all()
