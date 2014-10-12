@@ -8,6 +8,7 @@ urlpatterns = patterns('',
 
   url(r'^food/list/(?P<username>\w+)/', views.FoodListView, name='foodlist'),
   url(r'^food/liked/(?P<username>\w+)/', views.LikedFoodListView, name='likedfoodlist'),
+  url(r'^food/(?P<food_id>\d+)/(?P<username>\w+)/', views.FoodView, name='food'),
 
   url(r'^restaurants/following/(?P<username>\w+)/', views.FollowingRestaurantsListView, name='followingrestaurantslist'),
   url(r'^restaurants/recommended/(?P<username>\w+)/', views.RecommendedRestaurantsListView, name='recommendedrestaurantslist'),

@@ -71,6 +71,25 @@ def LikedFoodListView(request, username):
     return HttpResponse(json.dumps(food_list_serialized), content_type="application/json")
 
 @csrf_exempt
+def FoodView(request, food_id, username):
+
+    user = User.objects.get(username=username)
+    food = Food.objects.get(id=food_id)
+
+    food_obj = {}
+    food_obj['name'] = food.name
+    food_obj['photo'] = food.photo
+    food_obj['restaurant'] = food.restaurant.name
+    food_obj['restaurant_id'] = food.restaurant.id
+    food_obj['description'] = food.description
+
+    food_obj['num_likes'] = User.objects.filter(foods_liked__in=[food]).count()
+    food_obj['liked_by'] = [{'user_id':user.id, 'profile_pic': user.profile_pic} for user in User.objects.filter(foods_liked__in=[food])[:7]]
+    food_obj['is_liked'] = food in user.foods_liked.all()
+
+    return HttpResponse(json.dumps(food_obj), content_type="application/json")
+
+@csrf_exempt
 def FollowingRestaurantsListView(request, username):
 
     user = User.objects.get(username=username)
@@ -134,7 +153,7 @@ def DealsActivityListView(request):
         deal_obj['title'] = deal.title
         deal_obj['photo'] = deal.photo
         deal_obj['restaurant'] = deal.restaurant.name
-        deal_obj['restaurant_id'] = deal.restaurant.id
+        deal_obj['description'] = deal.restaurant.id
         deal_obj['details'] = deal.details
         deal_obj['more'] = deal.more_details
 
