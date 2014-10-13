@@ -84,7 +84,7 @@ def FoodView(request, food_id, username):
     food_obj['description'] = food.description
 
     food_obj['num_likes'] = User.objects.filter(foods_liked__in=[food]).count()
-    food_obj['liked_by'] = [{'user_id':user.id, 'profile_pic': user.profile_pic} for user in User.objects.filter(foods_liked__in=[food])[:7]]
+    food_obj['liked_by'] = [{'user_id':user.id, 'photo': user.photo} for user in User.objects.filter(foods_liked__in=[food])[:7]]
     food_obj['is_liked'] = food in user.foods_liked.all()
 
     return HttpResponse(json.dumps(food_obj), content_type="application/json")
@@ -132,7 +132,7 @@ def RecommendedRestaurantsListView(request, username):
         restaurant_obj['price_high'] = '${0:0.0f}'.format(restaurant.price_high)
 
         # get the people following this restaurant
-        restaurant_obj['followed_by'] = [{'user_id':user.id, 'username': user.username, 'profile_pic': user.profile_pic} for user in User.objects.filter(restaurants_following__in=[restaurant])[:7]]
+        restaurant_obj['followed_by'] = [{'user_id':user.id, 'username': user.username, 'photo': user.photo} for user in User.objects.filter(restaurants_following__in=[restaurant])[:7]]
         restaurant_obj['following_count'] = User.objects.filter(restaurants_following__in=[restaurant]).count()
 
         restaurant_obj['is_following'] = (restaurant.id in user_restaurants_ids)
@@ -159,7 +159,7 @@ def RestaurantView(request, restaurant_id, username):
     restaurant_obj['email'] = restaurant.email
     restaurant_obj['opening_hours'] = restaurant.opening_hours
 
-    restaurant_obj['followed_by'] = [{'user_id':user.id, 'username': user.username, 'profile_pic': user.profile_pic} for user in User.objects.filter(restaurants_following__in=[restaurant])[:7]]
+    restaurant_obj['followed_by'] = [{'user_id':user.id, 'username': user.username, 'photo': user.photo} for user in User.objects.filter(restaurants_following__in=[restaurant])[:7]]
     restaurant_obj['following_count'] = User.objects.filter(restaurants_following__in=[restaurant]).count()
 
     reviews = Review.objects.filter(restaurant__in=[restaurant])
@@ -218,12 +218,12 @@ def FriendsActivityListView(request, username):
         if activity.actor:
             activity_obj['actor'] = activity.actor.name
             activity_obj['actor_id'] = activity.actor.id
-            activity_obj['actor_photo'] = activity.actor.profile_pic
+            activity_obj['actor_photo'] = activity.actor.photo
 
         if activity.friend:
             activity_obj['friend'] = activity.friend.name
             activity_obj['friend_id'] = activity.friend.id
-            activity_obj['friend_photo'] = activity.friend.profile_pic
+            activity_obj['friend_photo'] = activity.friend.photo
 
         if activity.restaurant:
             activity_obj['restaurant'] = activity.restaurant.name
@@ -233,7 +233,7 @@ def FriendsActivityListView(request, username):
         if activity.review:
             activity_obj['actor'] = activity.review.user.name
             activity_obj['actor_id'] = activity.review.user.id
-            activity_obj['actor_photo'] = activity.review.user.profile_pic
+            activity_obj['actor_photo'] = activity.review.user.photo
             activity_obj['restaurant'] = activity.review.restaurant.name
             activity_obj['restaurant_id'] = activity.review.restaurant.id
             activity_obj['restaurant_photo'] = activity.review.restaurant.photo
@@ -247,4 +247,53 @@ def FriendsActivityListView(request, username):
 
     return HttpResponse(json.dumps(activity_list), content_type="application/json")
 
+@csrf_exempt
+def PeopleFollowingView(request, username):
 
+    this_user = User.objects.get(username=username)
+    following = this_user.following.all()
+    following_list = []
+
+    for user in following:
+        user_obj = {}
+        user_obj['id'] = user.id
+        user_obj['name'] = user.name
+        user_obj['photo'] = user.photo
+
+        user_obj['num_likes'] = user.foods_liked.all().count()
+        # user_obj['likes'] = [{'food_id': food.id, 'photo': food.photo} for food in user.foods_liked.all()[:5]]
+
+        user_obj['num_followers'] = User.objects.filter(following__in=[user]).count()
+
+        user_obj['num_reviews'] = Review.objects.filter(user=user).count()
+        user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo} for review in Review.objects.filter(user=user)[:5]]
+
+        following_list.append(user_obj)
+
+    return HttpResponse(json.dumps(following_list), content_type="application/json")
+
+@csrf_exempt
+def PeopleRecommendedView(request, username):
+
+    this_user = User.objects.get(username=username)
+    recommended = User.objects.filter(is_recommended=True)
+    recommended_list = []
+
+    for user in recommended:
+        user_obj = {}
+        user_obj['id'] = user.id
+        user_obj['name'] = user.name
+        user_obj['photo'] = user.photo
+        user_obj['is_following'] = user in this_user.following.all()
+
+        user_obj['num_likes'] = user.foods_liked.all().count()
+        # user_obj['likes'] = [{'food_id': food.id, 'photo': food.photo} for food in user.foods_liked.all()[:5]]
+
+        user_obj['num_followers'] = User.objects.filter(following__in=[user]).count()
+
+        user_obj['num_reviews'] = Review.objects.filter(user=user).count()
+        user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo} for review in Review.objects.filter(user=user)[:5]]
+
+        recommended_list.append(user_obj)
+
+    return HttpResponse(json.dumps(recommended_list), content_type="application/json")

@@ -16,4 +16,7 @@ urlpatterns = patterns('',
 
   url(r'^activity/deals/', views.DealsActivityListView, name='dealsactivity'),
   url(r'^activity/friends/(?P<username>\w+)/', views.FriendsActivityListView, name='friendsactivity'),
+
+  url(r'^people/following/(?P<username>\w+)/', views.PeopleFollowingView, name='peoplefollowing'),
+  url(r'^people/recommended/(?P<username>\w+)/', views.PeopleRecommendedView, name='peoplerecommended'),
 )
