@@ -38,7 +38,7 @@ class User(models.Model):
     restaurants_following = models.ManyToManyField(Restaurant, null=True, blank=True, related_name="restaurants_following")
     foods_liked = models.ManyToManyField(Food, null=True, blank=True, related_name="foods_liked")
     foods_disliked = models.ManyToManyField(Food, null=True, blank=True, related_name="foods_disliked")
-    following = models.ManyToManyField('self', null=True, blank=True)
+    following = models.ManyToManyField('self', null=True, blank=True, symmetrical=False, related_name="followers")
 
     def __unicode__(self):
         return self.username

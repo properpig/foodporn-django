@@ -263,7 +263,7 @@ def PeopleFollowingView(request, username):
         user_obj['num_likes'] = user.foods_liked.all().count()
         # user_obj['likes'] = [{'food_id': food.id, 'photo': food.photo} for food in user.foods_liked.all()[:5]]
 
-        user_obj['num_followers'] = User.objects.filter(following__in=[user]).count()
+        user_obj['num_followers'] = user.followers.all().count()
 
         user_obj['num_reviews'] = Review.objects.filter(user=user).count()
         user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo} for review in Review.objects.filter(user=user)[:5]]
@@ -289,7 +289,7 @@ def PeopleRecommendedView(request, username):
         user_obj['num_likes'] = user.foods_liked.all().count()
         # user_obj['likes'] = [{'food_id': food.id, 'photo': food.photo} for food in user.foods_liked.all()[:5]]
 
-        user_obj['num_followers'] = User.objects.filter(following__in=[user]).count()
+        user_obj['num_followers'] = user.followers.all().count()
 
         user_obj['num_reviews'] = Review.objects.filter(user=user).count()
         user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo} for review in Review.objects.filter(user=user)[:5]]
@@ -297,3 +297,29 @@ def PeopleRecommendedView(request, username):
         recommended_list.append(user_obj)
 
     return HttpResponse(json.dumps(recommended_list), content_type="application/json")
+
+@csrf_exempt
+def UserView(request, user_id, username):
+
+    this_user = User.objects.get(username=username)
+    user = User.objects.get(id=user_id)
+
+    user_obj = {}
+    user_obj['id'] = user.id
+    user_obj['name'] = user.name
+    user_obj['photo'] = user.photo
+    user_obj['is_following'] = user in this_user.following.all()
+
+    user_obj['num_likes'] = user.foods_liked.all().count()
+    # user_obj['likes'] = [{'food_id': food.id, 'photo': food.photo} for food in user.foods_liked.all()[:5]]
+
+    user_obj['num_followers'] = user.followers.all().count()
+    user_obj['followers'] = [{'id': person.id, 'photo': person.photo} for person in user.followers.all()]
+
+    user_obj['num_following'] = user.following.all().count()
+    user_obj['following'] = [{'id': person.id, 'photo': person.photo} for person in user.following.all()]
+
+    user_obj['num_reviews'] = Review.objects.filter(user=user).count()
+    user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo} for review in Review.objects.filter(user=user)[:5]]
+
+    return HttpResponse(json.dumps(user_obj), content_type="application/json")
