@@ -320,6 +320,6 @@ def UserView(request, user_id, username):
     user_obj['following'] = [{'id': person.id, 'photo': person.photo} for person in user.following.all()]
 
     user_obj['num_reviews'] = Review.objects.filter(user=user).count()
-    user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo} for review in Review.objects.filter(user=user)[:5]]
+    user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo, 'restaurant_x': review.restaurant.location_x, 'restaurant_y': review.restaurant.location_y} for review in Review.objects.filter(user=user)[:5]]
 
     return HttpResponse(json.dumps(user_obj), content_type="application/json")
