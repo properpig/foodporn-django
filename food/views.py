@@ -34,9 +34,6 @@ def FoodListView(request, username):
         food_obj['price'] = '${0:0.2f}'.format(food.price)
 
         food_obj['photo'] = food.photo
-        food_obj['is_halal'] = food.is_halal
-        food_obj['is_vegan'] = food.is_vegan
-        food_obj['cuisine'] = food.cuisine
         food_obj['restaurant'] = food.restaurant.name
 
         food_obj['is_liked'] = food in user.foods_liked.all()
@@ -60,12 +57,13 @@ def FoodView(request, food_id, username):
     food_obj['description'] = food.description
 
     food_obj['num_likes'] = User.objects.filter(foods_liked__in=[food]).count()
-    food_obj['liked_by'] = [{'user_id':user.id, 'photo': user.photo} for user in User.objects.filter(foods_liked__in=[food])[:7]]
+    food_obj['less_than_8'] = food_obj['num_likes'] <= 7
+    food_obj['liked_by'] = [{'user_id':person.id, 'photo': person.photo} for person in User.objects.filter(foods_liked__in=[food])[:7]]
     food_obj['is_liked'] = food in user.foods_liked.all()
     food_obj['is_disliked'] = food in user.foods_disliked.all()
 
-    food_obj['cuisine'] = [{'id': cuisine.id, 'image': cuisine.image} for cuisine in food.cuisine.all().order_by('position')]
-    food_obj['dietary'] = [{'id': diet.id, 'image': diet.image} for diet in food.dietary.all().order_by('position')]
+    food_obj['cuisine'] = [{'name': cuisine.name, 'image': cuisine.image} for cuisine in food.cuisine.all().order_by('position')]
+    food_obj['dietary'] = [{'name': diet.name, 'image': diet.image} for diet in food.dietary.all().order_by('position')]
 
     return HttpResponse(json.dumps(food_obj), content_type="application/json")
 
@@ -110,31 +108,37 @@ def RestaurantView(request, restaurant_id, username):
     restaurant = Restaurant.objects.get(id=restaurant_id)
 
     restaurant_obj = {}
+    restaurant_obj['restaurant_id'] = restaurant.id
     restaurant_obj['name'] = restaurant.name
     restaurant_obj['photo'] = restaurant.photo
     restaurant_obj['description'] = restaurant.description
     restaurant_obj['price_low'] = '${0:0.0f}'.format(restaurant.price_low)
     restaurant_obj['price_high'] = '${0:0.0f}'.format(restaurant.price_high)
     restaurant_obj['location_name'] = restaurant.location_name
+    restaurant_obj['location_x'] = restaurant.location_x
+    restaurant_obj['location_y'] = restaurant.location_y
 
     restaurant_obj['telephone'] = restaurant.telephone
     restaurant_obj['email'] = restaurant.email
     restaurant_obj['opening_hours'] = restaurant.opening_hours
 
     restaurant_obj['amenities'] = [{'name': res.name, 'image': res.image} for res in restaurant.amenities.all()]
+    restaurant_obj['amenities_count'] = len(restaurant_obj['amenities'])
 
     # get the cuisine type(s)
     cuisine_ids = restaurant.food_set.values('cuisine__id')
-    cuisine_types = [{'id': cuisine.id, 'image': cuisine.image} for cuisine in Cuisine.objects.filter(id__in=cuisine_ids).order_by('position')]
+    cuisine_types = [{'name': cuisine.name, 'image': cuisine.image} for cuisine in Cuisine.objects.filter(id__in=cuisine_ids).order_by('position')]
     restaurant_obj['cuisine'] = cuisine_types
 
     # get dietary types
     dietary_ids = restaurant.food_set.values('dietary__id')
-    dietary_types = [{'id': diet.id, 'image': diet.image} for diet in Diet.objects.filter(id__in=dietary_ids).order_by('position')]
-    restaurant_obj['dietary_types'] = dietary_types
+    dietary_types = [{'name': diet.name, 'image': diet.image} for diet in Diet.objects.filter(id__in=dietary_ids).order_by('position')]
+    restaurant_obj['dietary'] = dietary_types
 
+    restaurant_obj['is_following'] = restaurant in user.restaurants_following.all()
     restaurant_obj['followed_by'] = [{'user_id':user.id, 'username': user.username, 'photo': user.photo} for user in User.objects.filter(restaurants_following__in=[restaurant])[:7]]
     restaurant_obj['following_count'] = User.objects.filter(restaurants_following__in=[restaurant]).count()
+    restaurant_obj['less_than_8'] = restaurant_obj['following_count'] <= 7
 
     reviews = Review.objects.filter(restaurant__in=[restaurant])
     if reviews.count():
@@ -154,6 +158,7 @@ def RestaurantView(request, restaurant_id, username):
 
     deals = DealsActivity.objects.filter(restaurant__in=[restaurant])
     restaurant_obj['deals'] = [{'title': deal.title, 'photo': deal.photo, 'details': deal.details, 'more': deal.more_details} for deal in deals]
+    restaurant_obj['deal_count'] = len(restaurant_obj['deals'])
 
     return HttpResponse(json.dumps(restaurant_obj), content_type="application/json")
 
