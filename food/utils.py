@@ -25,3 +25,8 @@ def timesince(dt, default="just now"):
             return "%d %s ago" % (period, singular if period == 1 else plural)
 
     return default
+
+def unique(seq): # Order preserving
+  ''' Modified version of Dave Kirby solution '''
+  seen = set()
+  return [x for x in seq if x not in seen and not seen.add(x)]

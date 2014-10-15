@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.core import serializers
 
 from food.models import *
-from utils import timesince
+from utils import timesince, unique
 
 import json, decimal, time
 
@@ -62,6 +62,10 @@ def FoodView(request, food_id, username):
     food_obj['num_likes'] = User.objects.filter(foods_liked__in=[food]).count()
     food_obj['liked_by'] = [{'user_id':user.id, 'photo': user.photo} for user in User.objects.filter(foods_liked__in=[food])[:7]]
     food_obj['is_liked'] = food in user.foods_liked.all()
+    food_obj['is_disliked'] = food in user.foods_disliked.all()
+
+    food_obj['cuisine'] = [{'id': cuisine.id, 'image': cuisine.image} for cuisine in food.cuisine.all().order_by('position')]
+    food_obj['dietary'] = [{'id': diet.id, 'image': diet.image} for diet in food.dietary.all().order_by('position')]
 
     return HttpResponse(json.dumps(food_obj), content_type="application/json")
 
@@ -120,49 +124,13 @@ def RestaurantView(request, restaurant_id, username):
     restaurant_obj['amenities'] = [{'name': res.name, 'image': res.image} for res in restaurant.amenities.all()]
 
     # get the cuisine type(s)
-    cuisine_types = []
-    if restaurant.food_set.filter(is_chinese=True).count():
-        cuisine_types.append(['chinese', 'Chinese'])
-    if restaurant.food_set.filter(is_french=True).count():
-        cuisine_types.append(['french', 'French'])
-    if restaurant.food_set.filter(is_german=True).count():
-        cuisine_types.append(['german', 'German'])
-    if restaurant.food_set.filter(is_indian=True).count():
-        cuisine_types.append(['indian', 'Indian'])
-    if restaurant.food_set.filter(is_italian=True).count():
-        cuisine_types.append(['italian', 'Italian'])
-    if restaurant.food_set.filter(is_japanese=True).count():
-        cuisine_types.append(['japanese', 'Japanese'])
-    if restaurant.food_set.filter(is_korean=True).count():
-        cuisine_types.append(['korean'])
-    if restaurant.food_set.filter(is_thai=True).count():
-        cuisine_types.append(['thai'])
-    if restaurant.food_set.filter(is_mexican=True).count():
-        cuisine_types.append(['mexican'])
-    if restaurant.food_set.filter(is_middleeast=True).count():
-        cuisine_types.append(['middleeast'])
-    if restaurant.food_set.filter(is_vietnamese=True).count():
-        cuisine_types.append(['vietnamese'])
-    if restaurant.food_set.filter(is_western=True).count():
-        cuisine_types.append(['western'])
+    cuisine_ids = restaurant.food_set.values('cuisine__id')
+    cuisine_types = [{'id': cuisine.id, 'image': cuisine.image} for cuisine in Cuisine.objects.filter(id__in=cuisine_ids).order_by('position')]
     restaurant_obj['cuisine'] = cuisine_types
 
     # get dietary types
-    dietary_types = []
-    if restaurant.food_set.filter(is_halal=True).count():
-        dietary_types.append('halal')
-    if restaurant.food_set.filter(is_cholesterolfree=True).count():
-        dietary_types.append('cholesterolfree')
-    if restaurant.food_set.filter(is_lactosefree=True).count():
-        dietary_types.append('lactosefree')
-    if restaurant.food_set.filter(is_glutenfree=True).count():
-        dietary_types.append('glutenfree')
-    if restaurant.food_set.filter(is_vegan=True).count():
-        dietary_types.append('vegan')
-    if restaurant.food_set.filter(is_vegetarian=True).count():
-        dietary_types.append('vegetarian')
-    if restaurant.food_set.filter(is_organic=True).count():
-        dietary_types.append('organic')
+    dietary_ids = restaurant.food_set.values('dietary__id')
+    dietary_types = [{'id': diet.id, 'image': diet.image} for diet in Diet.objects.filter(id__in=dietary_ids).order_by('position')]
     restaurant_obj['dietary_types'] = dietary_types
 
     restaurant_obj['followed_by'] = [{'user_id':user.id, 'username': user.username, 'photo': user.photo} for user in User.objects.filter(restaurants_following__in=[restaurant])[:7]]
