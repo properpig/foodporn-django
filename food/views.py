@@ -16,10 +16,14 @@ def test(request):
 
 @csrf_exempt
 def FoodListView(request, username):
-    food_list = Food.objects.all()
-    food_list_serialized = []
 
+    food_list_serialized = []
     user = User.objects.get(username=username)
+
+    food_list = Food.objects.all().select_related('user', 'restaurant')
+
+    if request.GET.get('liked', False):
+        food_list = food_list.filter(foods_liked__in=[user])
 
     for food in food_list:
 
@@ -36,34 +40,6 @@ def FoodListView(request, username):
         food_obj['restaurant'] = food.restaurant.name
 
         food_obj['is_liked'] = food in user.foods_liked.all()
-        food_obj['num_likes'] = User.objects.filter(foods_liked__in=[food]).count()
-
-        food_list_serialized.append(food_obj)
-
-    return HttpResponse(json.dumps(food_list_serialized), content_type="application/json")
-
-@csrf_exempt
-def LikedFoodListView(request, username):
-
-    user = User.objects.get(username=username)
-
-    food_list = user.foods_liked.all()
-    food_list_serialized = []
-
-    for food in food_list:
-
-        food_obj = {}
-        food_obj['id'] = food.id
-        food_obj['name'] = food.name
-        food_obj['description'] = food.description
-        food_obj['price'] = '${0:0.2f}'.format(food.price)
-
-        food_obj['photo'] = food.photo
-        food_obj['is_halal'] = food.is_halal
-        food_obj['is_vegan'] = food.is_vegan
-        food_obj['cuisine'] = food.cuisine
-        food_obj['restaurant'] = food.restaurant.name
-
         food_obj['num_likes'] = User.objects.filter(foods_liked__in=[food]).count()
 
         food_list_serialized.append(food_obj)
@@ -90,12 +66,18 @@ def FoodView(request, food_id, username):
     return HttpResponse(json.dumps(food_obj), content_type="application/json")
 
 @csrf_exempt
-def FollowingRestaurantsListView(request, username):
+def RestaurantsListView(request, username):
 
     user = User.objects.get(username=username)
+    user_restaurants_ids = [r.id for r in user.restaurants_following.all()]
 
-    restaurants = user.restaurants_following.all()
+    restaurants = Restaurant.objects.all().select_related('user','restaurant')
     restaurants_list = []
+
+    if request.GET.get('following', False):
+        restaurants = restaurants.filter(restaurants_following__in=[user])
+    if request.GET.get('recommended', False):
+        restaurants = restaurants.filter(is_recommended=True)
 
     for restaurant in restaurants:
 
@@ -107,32 +89,8 @@ def FollowingRestaurantsListView(request, username):
         restaurant_obj['price_low'] = '${0:0.0f}'.format(restaurant.price_low)
         restaurant_obj['price_high'] = '${0:0.0f}'.format(restaurant.price_high)
 
-        restaurants_list.append(restaurant_obj)
-
-    return HttpResponse(json.dumps(restaurants_list), content_type="application/json")
-
-@csrf_exempt
-def RecommendedRestaurantsListView(request, username):
-
-    user = User.objects.get(username=username)
-
-    user_restaurants_ids = [r.id for r in user.restaurants_following.all()]
-
-    recommended_restaurants = Restaurant.objects.filter(is_recommended=True)
-    restaurants_list = []
-
-    for restaurant in recommended_restaurants:
-
-        restaurant_obj = {}
-        restaurant_obj['name'] = restaurant.name
-        restaurant_obj['id'] = restaurant.id
-        restaurant_obj['location_name'] = restaurant.location_name
-        restaurant_obj['photo'] = restaurant.photo
-        restaurant_obj['price_low'] = '${0:0.0f}'.format(restaurant.price_low)
-        restaurant_obj['price_high'] = '${0:0.0f}'.format(restaurant.price_high)
-
         # get the people following this restaurant
-        restaurant_obj['followed_by'] = [{'user_id':user.id, 'username': user.username, 'photo': user.photo} for user in User.objects.filter(restaurants_following__in=[restaurant])[:7]]
+        restaurant_obj['followed_by'] = [{'user_id':person.id, 'username': person.username, 'photo': person.photo} for person in User.objects.filter(restaurants_following__in=[restaurant])[:7]]
         restaurant_obj['following_count'] = User.objects.filter(restaurants_following__in=[restaurant]).count()
 
         restaurant_obj['is_following'] = (restaurant.id in user_restaurants_ids)
@@ -158,6 +116,54 @@ def RestaurantView(request, restaurant_id, username):
     restaurant_obj['telephone'] = restaurant.telephone
     restaurant_obj['email'] = restaurant.email
     restaurant_obj['opening_hours'] = restaurant.opening_hours
+
+    restaurant_obj['amenities'] = [{'name': res.name, 'image': res.image} for res in restaurant.amenities.all()]
+
+    # get the cuisine type(s)
+    cuisine_types = []
+    if restaurant.food_set.filter(is_chinese=True).count():
+        cuisine_types.append(['chinese', 'Chinese'])
+    if restaurant.food_set.filter(is_french=True).count():
+        cuisine_types.append(['french', 'French'])
+    if restaurant.food_set.filter(is_german=True).count():
+        cuisine_types.append(['german', 'German'])
+    if restaurant.food_set.filter(is_indian=True).count():
+        cuisine_types.append(['indian', 'Indian'])
+    if restaurant.food_set.filter(is_italian=True).count():
+        cuisine_types.append(['italian', 'Italian'])
+    if restaurant.food_set.filter(is_japanese=True).count():
+        cuisine_types.append(['japanese', 'Japanese'])
+    if restaurant.food_set.filter(is_korean=True).count():
+        cuisine_types.append(['korean'])
+    if restaurant.food_set.filter(is_thai=True).count():
+        cuisine_types.append(['thai'])
+    if restaurant.food_set.filter(is_mexican=True).count():
+        cuisine_types.append(['mexican'])
+    if restaurant.food_set.filter(is_middleeast=True).count():
+        cuisine_types.append(['middleeast'])
+    if restaurant.food_set.filter(is_vietnamese=True).count():
+        cuisine_types.append(['vietnamese'])
+    if restaurant.food_set.filter(is_western=True).count():
+        cuisine_types.append(['western'])
+    restaurant_obj['cuisine'] = cuisine_types
+
+    # get dietary types
+    dietary_types = []
+    if restaurant.food_set.filter(is_halal=True).count():
+        dietary_types.append('halal')
+    if restaurant.food_set.filter(is_cholesterolfree=True).count():
+        dietary_types.append('cholesterolfree')
+    if restaurant.food_set.filter(is_lactosefree=True).count():
+        dietary_types.append('lactosefree')
+    if restaurant.food_set.filter(is_glutenfree=True).count():
+        dietary_types.append('glutenfree')
+    if restaurant.food_set.filter(is_vegan=True).count():
+        dietary_types.append('vegan')
+    if restaurant.food_set.filter(is_vegetarian=True).count():
+        dietary_types.append('vegetarian')
+    if restaurant.food_set.filter(is_organic=True).count():
+        dietary_types.append('organic')
+    restaurant_obj['dietary_types'] = dietary_types
 
     restaurant_obj['followed_by'] = [{'user_id':user.id, 'username': user.username, 'photo': user.photo} for user in User.objects.filter(restaurants_following__in=[restaurant])[:7]]
     restaurant_obj['following_count'] = User.objects.filter(restaurants_following__in=[restaurant]).count()
@@ -248,38 +254,18 @@ def FriendsActivityListView(request, username):
     return HttpResponse(json.dumps(activity_list), content_type="application/json")
 
 @csrf_exempt
-def PeopleFollowingView(request, username):
+def PeopleListView(request, username):
 
     this_user = User.objects.get(username=username)
-    following = this_user.following.all()
-    following_list = []
+    people = User.objects.all()
+    people_list = []
 
-    for user in following:
-        user_obj = {}
-        user_obj['id'] = user.id
-        user_obj['name'] = user.name
-        user_obj['photo'] = user.photo
+    if request.GET.get('following', False):
+        people = people.filter(followers__in=[this_user])
+    if request.GET.get('recommended', False):
+        people = people.filter(is_recommended=True)
 
-        user_obj['num_likes'] = user.foods_liked.all().count()
-        # user_obj['likes'] = [{'food_id': food.id, 'photo': food.photo} for food in user.foods_liked.all()[:5]]
-
-        user_obj['num_followers'] = user.followers.all().count()
-
-        user_obj['num_reviews'] = Review.objects.filter(user=user).count()
-        user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo} for review in Review.objects.filter(user=user)[:5]]
-
-        following_list.append(user_obj)
-
-    return HttpResponse(json.dumps(following_list), content_type="application/json")
-
-@csrf_exempt
-def PeopleRecommendedView(request, username):
-
-    this_user = User.objects.get(username=username)
-    recommended = User.objects.filter(is_recommended=True)
-    recommended_list = []
-
-    for user in recommended:
+    for user in people:
         user_obj = {}
         user_obj['id'] = user.id
         user_obj['name'] = user.name
@@ -294,9 +280,9 @@ def PeopleRecommendedView(request, username):
         user_obj['num_reviews'] = Review.objects.filter(user=user).count()
         user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo} for review in Review.objects.filter(user=user)[:5]]
 
-        recommended_list.append(user_obj)
+        people_list.append(user_obj)
 
-    return HttpResponse(json.dumps(recommended_list), content_type="application/json")
+    return HttpResponse(json.dumps(people_list), content_type="application/json")
 
 @csrf_exempt
 def UserView(request, user_id, username):
@@ -309,7 +295,7 @@ def UserView(request, user_id, username):
     user_obj['name'] = user.name
     user_obj['photo'] = user.photo
     user_obj['bio'] = user.bio
-    user_obj['join_date'] = user.join_date.strftime("%d/%m/%y")
+    user_obj['join_date'] = user.join_date.strftime("%d %B %Y")
     user_obj['is_following'] = user in this_user.following.all()
 
     user_obj['num_likes'] = user.foods_liked.all().count()

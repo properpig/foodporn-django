@@ -1,5 +1,26 @@
 from django.db import models
 
+class Amenity(models.Model):
+    name = models.CharField(max_length=50)
+    image = models.CharField(max_length=200)
+    position = models.IntegerField(default=0)
+    def __unicode__(self):
+        return self.name
+
+class Diet(models.Model):
+    name = models.CharField(max_length=50)
+    image = models.CharField(max_length=200)
+    position = models.IntegerField(default=0)
+    def __unicode__(self):
+        return self.name
+
+class Cuisine(models.Model):
+    name = models.CharField(max_length=50)
+    image = models.CharField(max_length=200)
+    position = models.IntegerField(default=0)
+    def __unicode__(self):
+        return self.name
+
 class Restaurant(models.Model):
     name = models.CharField(max_length=200)
     description = models.CharField(max_length=200)
@@ -14,6 +35,9 @@ class Restaurant(models.Model):
     email = models.CharField(max_length=50)
     opening_hours = models.CharField(max_length=300)
     is_recommended = models.BooleanField(default=False)
+
+    amenities = models.ManyToManyField(Amenity, null=True, blank=True, related_name="amenities")
+
     def __unicode__(self):
         return self.name
 
@@ -22,9 +46,10 @@ class Food(models.Model):
     description = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     photo = models.CharField(max_length=200)
-    is_halal = models.BooleanField(default=False)
-    is_vegan = models.BooleanField(default=False)
-    cuisine = models.CharField(max_length=30)
+
+    dietary = models.ManyToManyField(Diet, null=True, blank=True)
+    cuisine = models.ManyToManyField(Cuisine, null=True, blank=True)
+
     restaurant = models.ForeignKey(Restaurant, null=True, blank=True)
     def __unicode__(self):
         return self.name
@@ -88,3 +113,4 @@ class FriendsActivity(models.Model):
         else:
             name = self.review.user.name
         return self.activity_type + ": " + name
+
