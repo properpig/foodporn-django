@@ -40,6 +40,12 @@ class User(models.Model):
     foods_disliked = models.ManyToManyField(Food, null=True, blank=True, related_name="foods_disliked")
     following = models.ManyToManyField('self', null=True, blank=True, symmetrical=False, related_name="followers")
 
+    location_x = models.CharField(max_length=20, default="1.296568")
+    location_y = models.CharField(max_length=20, default="103.852118")
+
+    bio = models.CharField(max_length=400, default="Food is an important part of a balanced diet.")
+    join_date = models.DateTimeField(blank=True, null=True)
+
     def __unicode__(self):
         return self.username
 
@@ -82,4 +88,3 @@ class FriendsActivity(models.Model):
         else:
             name = self.review.user.name
         return self.activity_type + ": " + name
-

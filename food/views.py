@@ -308,6 +308,8 @@ def UserView(request, user_id, username):
     user_obj['id'] = user.id
     user_obj['name'] = user.name
     user_obj['photo'] = user.photo
+    user_obj['bio'] = user.bio
+    user_obj['join_date'] = user.join_date.strftime("%d/%m/%y")
     user_obj['is_following'] = user in this_user.following.all()
 
     user_obj['num_likes'] = user.foods_liked.all().count()
