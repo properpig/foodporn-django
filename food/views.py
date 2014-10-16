@@ -87,8 +87,7 @@ def RestaurantsListView(request, username):
         restaurant_obj['name'] = restaurant.name
         restaurant_obj['id'] = restaurant.id
         restaurant_obj['location_name'] = restaurant.location_name
-        restaurant_obj['location_x'] = restaurant.location_x
-        restaurant_obj['location_y'] = restaurant.location_y
+        restaurant_obj['location'] = {'x':restaurant.location_x, 'y':restaurant.location_y}
         restaurant_obj['photo'] = restaurant.photo
         restaurant_obj['price_low'] = '${0:0.0f}'.format(restaurant.price_low)
         restaurant_obj['price_high'] = '${0:0.0f}'.format(restaurant.price_high)
