@@ -35,6 +35,7 @@ def FoodListView(request, username):
 
         food_obj['photo'] = food.photo
         food_obj['restaurant'] = food.restaurant.name
+        food_obj['restaurant_id'] = food.restaurant.id
 
         food_obj['is_liked'] = food in user.foods_liked.all()
         food_obj['num_likes'] = User.objects.filter(foods_liked__in=[food]).count()
@@ -197,7 +198,7 @@ def RestaurantView(request, restaurant_id, username):
     restaurant_obj['reviews_count'] = reviews.count()
     restaurant_obj['reviews'] = [{'id': review.id, 'photo': review.photo} for review in reviews]
 
-    restaurant_obj['foods'] = [{'id': food.id, 'photo': food.photo} for food in Food.objects.filter(restaurant=restaurant)]
+    restaurant_obj['foods'] = [{'id': food.id, 'photo': food.photo, 'name': food.name, 'price':'${0:0.2f}'.format(food.price)} for food in Food.objects.filter(restaurant=restaurant)]
     restaurant_obj['food_count'] = Food.objects.filter(restaurant=restaurant).count()
 
     deals = DealsActivity.objects.filter(restaurant__in=[restaurant])
