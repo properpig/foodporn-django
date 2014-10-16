@@ -41,6 +41,8 @@ def FoodListView(request, username):
 
         food_list_serialized.append(food_obj)
 
+    food_list_serialized.reverse()
+
     return HttpResponse(json.dumps(food_list_serialized), content_type="application/json")
 
 @csrf_exempt
@@ -66,6 +68,47 @@ def FoodView(request, food_id, username):
     food_obj['dietary'] = [{'name': diet.name, 'image': diet.image} for diet in food.dietary.all().order_by('position')]
 
     return HttpResponse(json.dumps(food_obj), content_type="application/json")
+
+@csrf_exempt
+def FoodLikeView(request, food_id, username):
+
+    user = User.objects.get(username=username)
+    food = Food.objects.get(id=food_id)
+
+    if user.foods_liked.filter(id=food.id):
+        user.foods_liked.remove(food)
+
+        user.save()
+        return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
+
+    user.foods_liked.add(food)
+
+    if user.foods_disliked.filter(id=food.id):
+        user.foods_disliked.remove(food)
+
+    user.save()
+
+    return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
+
+@csrf_exempt
+def FoodDislikeView(request, food_id, username):
+
+    user = User.objects.get(username=username)
+    food = Food.objects.get(id=food_id)
+
+    if user.foods_disliked.filter(id=food.id):
+        user.foods_disliked.remove(food)
+
+        user.save()
+        return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
+
+    user.foods_disliked.add(food)
+
+    if user.foods_liked.filter(id=food.id):
+        user.foods_liked.remove(food)
+
+    user.save()
+    return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
 
 @csrf_exempt
 def RestaurantsListView(request, username):
@@ -162,6 +205,24 @@ def RestaurantView(request, restaurant_id, username):
     restaurant_obj['deal_count'] = len(restaurant_obj['deals'])
 
     return HttpResponse(json.dumps(restaurant_obj), content_type="application/json")
+
+@csrf_exempt
+def RestaurantFollowView(request, restaurant_id, username):
+
+    user = User.objects.get(username=username)
+    restaurant = Restaurant.objects.get(id=restaurant_id)
+
+    if user.restaurants_following.filter(id=restaurant.id):
+        user.restaurants_following.remove(restaurant)
+        user.save()
+        return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
+
+    user.restaurants_following.add(restaurant)
+
+    user.save()
+
+    return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
+
 
 @csrf_exempt
 def DealsActivityListView(request):
