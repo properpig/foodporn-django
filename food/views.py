@@ -332,6 +332,7 @@ def UserView(request, user_id, username):
     user_obj['bio'] = user.bio
     user_obj['join_date'] = user.join_date.strftime("%d %B %Y")
     user_obj['is_following'] = user in this_user.following.all()
+    user_obj['is_me'] = user.id == this_user.id
 
     user_obj['num_likes'] = user.foods_liked.all().count()
     # user_obj['likes'] = [{'food_id': food.id, 'photo': food.photo} for food in user.foods_liked.all()[:5]]
@@ -346,3 +347,23 @@ def UserView(request, user_id, username):
     user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo, 'restaurant_x': review.restaurant.location_x, 'restaurant_y': review.restaurant.location_y} for review in Review.objects.filter(user=user)[:5]]
 
     return HttpResponse(json.dumps(user_obj), content_type="application/json")
+
+@csrf_exempt
+def UserFollowView(request, user_id, username):
+
+    this_user = User.objects.get(username=username)
+    user = User.objects.get(id=user_id)
+
+    if this_user.id == user.id:
+        return HttpResponse(json.dumps({'status': 'error'}, {'message': 'cant follow yourself'}), content_type="application/json")
+
+    if this_user.following.filter(id=user_id):
+        this_user.following.remove(user)
+
+        this_user.save()
+        return HttpResponse(json.dumps({'status': 'success', 'message': 'unfollowed'}), content_type="application/json")
+
+    this_user.following.add(user)
+    this_user.save()
+
+    return HttpResponse(json.dumps({'status': 'success', 'message': 'followed'}), content_type="application/json")
