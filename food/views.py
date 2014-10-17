@@ -369,6 +369,16 @@ def UserFollowView(request, user_id, username):
 
     return HttpResponse(json.dumps({'status': 'success', 'message': 'followed'}), content_type="application/json")
 
+@csrf_exempt
+def DirectionsView(request, username, restaurant_id):
+
+    user = User.objects.get(username=username)
+    restaurant = Restaurant.objects.get(id=restaurant_id)
+
+    user_location = {'x': user.location_x, 'y': user.location_y}
+    restaurant_location = {'x': restaurant.location_x, 'y': restaurant.location_y}
+
+    return HttpResponse(json.dumps({'user': user_location, 'restaurant': restaurant_location}), content_type="application/json")
 
 @csrf_exempt
 def FiltersView(request):
