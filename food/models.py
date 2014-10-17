@@ -79,6 +79,7 @@ class Review(models.Model):
     restaurant = models.ForeignKey(Restaurant, null=True, blank=True)
     photo = models.CharField(max_length=200)
     rating = models.IntegerField()
+    text = models.CharField(max_length=500, default="")
     def __unicode__(self):
         return self.user.username + ": " + str(self.rating)
 
