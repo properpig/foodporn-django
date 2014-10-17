@@ -368,3 +368,20 @@ def UserFollowView(request, user_id, username):
     this_user.save()
 
     return HttpResponse(json.dumps({'status': 'success', 'message': 'followed'}), content_type="application/json")
+
+
+@csrf_exempt
+def FiltersView(request):
+
+    amenities = Amenity.objects.all().order_by('position')
+    diets = Diet.objects.all().order_by('position')
+    cuisines = Cuisine.objects.all().order_by('position')
+
+    amenities_list = [{'id':amenity.id, 'name': amenity.name, 'image': amenity.image} for amenity in amenities]
+    diets_list = [{'id':diet.id, 'name': diet.name, 'image': diet.image} for diet in diets]
+    cuisines_list = [{'id':cuisine.id, 'name': cuisine.name, 'image': cuisine.image} for cuisine in cuisines]
+
+    filters = {'amenities': amenities_list, 'diets': diets_list, 'cuisines': cuisines_list}
+
+    return HttpResponse(json.dumps(filters), content_type="application/json")
+

@@ -21,4 +21,6 @@ urlpatterns = patterns('',
   url(r'^people/list/(?P<username>\w+)/', views.PeopleListView, name='peoplelist'),
   url(r'^user/follow/(?P<user_id>\d+)/(?P<username>\w+)/', views.UserFollowView, name='followuser'),
   url(r'^user/(?P<user_id>\d+)/(?P<username>\w+)/', views.UserView, name='user'),
+
+  url(r'^filters/list/', views.FiltersView, name='filterlist'),
 )
