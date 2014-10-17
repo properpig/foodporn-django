@@ -376,7 +376,7 @@ def DirectionsView(request, username, restaurant_id):
     restaurant = Restaurant.objects.get(id=restaurant_id)
 
     user_location = {'x': user.location_x, 'y': user.location_y}
-    restaurant_location = {'x': restaurant.location_x, 'y': restaurant.location_y}
+    restaurant_location = {'x': restaurant.location_x, 'y': restaurant.location_y, 'name': restaurant.name, 'location_name': restaurant.location_name}
 
     return HttpResponse(json.dumps({'user': user_location, 'restaurant': restaurant_location}), content_type="application/json")
 
