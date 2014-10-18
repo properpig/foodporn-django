@@ -24,4 +24,6 @@ urlpatterns = patterns('',
 
   url(r'^filters/list/', views.FiltersView, name='filterlist'),
   url(r'^directions/(?P<restaurant_id>\d+)/(?P<username>\w+)/', views.DirectionsView, name='directions'),
+
+  url(r'^reset/(?P<username>\w+)/', views.ResetView, name='reset'),
 )
