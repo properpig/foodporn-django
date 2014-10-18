@@ -414,14 +414,12 @@ def FiltersView(request):
 def ResetView(request, username):
 
     user = User.objects.get(username=username)
-    user.foods_liked.all().delete()
-    user.foods_disliked.all().delete()
+    user.foods_liked.clear()
+    user.foods_disliked.clear()
 
     user.save()
 
     return HttpResponse(json.dumps({'message': 'deleted all foods liked and disliked!'}), content_type="application/json")
-
-
 
 
 
