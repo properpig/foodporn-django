@@ -9,7 +9,7 @@ urlpatterns = patterns('',
   url(r'^food/list/(?P<username>\w+)/', views.FoodListView, name='foodlist'),
   url(r'^food/like/(?P<food_id>\d+)/(?P<username>\w+)/', views.FoodLikeView, name='foodlike'),
   url(r'^food/dislike/(?P<food_id>\d+)/(?P<username>\w+)/', views.FoodDislikeView, name='fooddislike'),
-  url(r'^food/reset/(?P<food_id>\d+)/(?P<username>\w+)/', views.FoodDislikeView, name='fooddislike'),
+  url(r'^food/reset/(?P<food_id>\d+)/(?P<username>\w+)/', views.FoodResetView, name='fooddislike'),
   url(r'^food/(?P<food_id>\d+)/(?P<username>\w+)/', views.FoodView, name='food'),
 
   url(r'^restaurants/list/(?P<username>\w+)/', views.RestaurantsListView, name='restaurantslist'),
