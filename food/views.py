@@ -112,6 +112,21 @@ def FoodDislikeView(request, food_id, username):
     return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
 
 @csrf_exempt
+def FoodResetView(request, food_id, username):
+
+    user = User.objects.get(username=username)
+    food = Food.objects.get(id=food_id)
+
+    if user.foods_disliked.filter(id=food.id):
+        user.foods_disliked.remove(food)
+
+     if user.foods_liked.filter(id=food.id):
+        user.foods_liked.remove(food)
+
+    user.save()
+    return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
+
+@csrf_exempt
 def RestaurantsListView(request, username):
 
     user = User.objects.get(username=username)
