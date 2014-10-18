@@ -120,7 +120,7 @@ def FoodResetView(request, food_id, username):
     if user.foods_disliked.filter(id=food.id):
         user.foods_disliked.remove(food)
 
-     if user.foods_liked.filter(id=food.id):
+    if user.foods_liked.filter(id=food.id):
         user.foods_liked.remove(food)
 
     user.save()
