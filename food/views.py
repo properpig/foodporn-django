@@ -158,9 +158,22 @@ def RestaurantsListView(request, username):
         restaurants = restaurants.filter(restaurants_following__in=[user])
     if request.GET.get('recommended', False):
         restaurants = restaurants.filter(is_recommended=True)
+    if request.GET.get('amenity_ids', False):
+        amenity_ids = request.GET.get('amenity_ids', False).split(',')
+        restaurants = restaurants.filter(amenities__in=amenity_ids)
+    if request.GET.get('dietary_ids', False):
+        dietary_ids = request.GET.get('dietary_ids', False).split(',')
+        food_ids = Food.objects.filter(dietary__in=dietary_ids)
+        restaurants = restaurants.filter(food__in=food_ids)
+    if request.GET.get('cuisine_ids', False):
+        cuisine_ids = request.GET.get('cuisine_ids', False).split(',')
+        food_ids = Food.objects.filter(cuisine__in=cuisine_ids)
+        restaurants = restaurants.filter(food__in=food_ids)
+
+    # get distinct restaurants
+    restaurants = unique(restaurants)
 
     for restaurant in restaurants:
-
         restaurant_obj = {}
         restaurant_obj['name'] = restaurant.name
         restaurant_obj['id'] = restaurant.id
@@ -169,6 +182,8 @@ def RestaurantsListView(request, username):
         restaurant_obj['photo'] = restaurant.photo
         restaurant_obj['price_low'] = '${0:0.0f}'.format(restaurant.price_low)
         restaurant_obj['price_high'] = '${0:0.0f}'.format(restaurant.price_high)
+        restaurant_obj['amenities'] = [{'id': res.id, 'image': res.image} for res in restaurant.amenities.all()]
+
 
         # get the people following this restaurant
         restaurant_obj['followed_by'] = [{'user_id':person.id, 'username': person.username, 'photo': person.photo} for person in User.objects.filter(restaurants_following__in=[restaurant])[:7]]
