@@ -35,8 +35,14 @@ def FoodListView(request, username):
 
     if request.GET.get('liked', False):
         food_list = food_list.filter(foods_liked__in=[user]).order_by('-id')
-    else:
+    if request.GET.get('explore', False):
         food_list = food_list.exclude(foods_liked__in=[user]).exclude(foods_disliked__in=[user]).order_by('id')
+    if request.GET.get('dietary_ids', False):
+        dietary_ids = request.GET.get('dietary_ids', False).split(',')
+        food_list = food_list.filter(dietary__in=dietary_ids)
+    if request.GET.get('cuisine_ids', False):
+        cuisine_ids = request.GET.get('cuisine_ids', False).split(',')
+        food_list = food_list.filter(cuisine__in=cuisine_ids)
 
     for food in food_list:
 
@@ -49,6 +55,8 @@ def FoodListView(request, username):
         food_obj['photo'] = food.photo
         food_obj['restaurant'] = food.restaurant.name
         food_obj['restaurant_id'] = food.restaurant.id
+        food_obj['dietary_ids'] = [{'id':i.id, 'name':i.name} for i in food.dietary.all()]
+        food_obj['cuisine_ids'] = [{'id':i.id, 'name':i.name} for i in food.cuisine.all()]
 
         food_obj['is_liked'] = food in user.foods_liked.all()
         food_obj['num_likes'] = User.objects.filter(foods_liked__in=[food]).count()
@@ -331,6 +339,7 @@ def PeopleListView(request, username):
         user_obj = {}
         user_obj['id'] = user.id
         user_obj['name'] = user.name
+        user_obj['username'] = user.username
         user_obj['photo'] = user.photo
         user_obj['is_following'] = user in this_user.following.all()
 
@@ -355,6 +364,7 @@ def UserView(request, user_id, username):
     user_obj = {}
     user_obj['id'] = user.id
     user_obj['name'] = user.name
+    user_obj['username'] = user.username
     user_obj['photo'] = user.photo
     user_obj['bio'] = user.bio
     user_obj['join_date'] = user.join_date.strftime("%d %B %Y")
