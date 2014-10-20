@@ -2,7 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, QueryDict
 from django.core import serializers
 
 from food.models import *
@@ -252,7 +252,7 @@ def RestaurantView(request, restaurant_id, username):
 
     restaurant_obj['rating'] = rating
     restaurant_obj['reviews_count'] = reviews.count()
-    restaurant_obj['reviews'] = [{'id': review.id, 'photo': review.photo} for review in reviews]
+    restaurant_obj['reviews'] = [{'id': review.id, 'photo': review.photo, 'rating': review.rating, 'text': review.text, 'user':{'id': user.id, 'photo': user.photo}} for review in reviews]
 
     restaurant_obj['foods'] = [{'id': food.id, 'photo': food.photo, 'name': food.name, 'price':'${0:0.2f}'.format(food.price), 'num_likes': User.objects.filter(foods_liked__in=[food]).count()} for food in Food.objects.filter(restaurant=restaurant)]
     restaurant_obj['food_count'] = Food.objects.filter(restaurant=restaurant).count()
@@ -280,6 +280,98 @@ def RestaurantFollowView(request, restaurant_id, username):
 
     return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
 
+@csrf_exempt
+def ReviewView(request, username):
+
+    if request.method == 'GET':
+        try:
+            review = Review.objects.get(id=review_id)
+        except:
+            return HttpResponse(json.dumps({'status': 'error', 'message':'Review does not exist'}), content_type="application/json")
+
+        review_obj = {'id': review.id, 'photo': review.photo, 'rating': review.rating, 'text': review.text, 'user':{'id': user.id, 'photo': user.photo}}
+
+        return HttpResponse(json.dumps(review_obj), content_type="application/json")
+
+    elif request.method == 'POST':
+
+        user = User.objects.get(username=username)
+
+        rating = request.POST.get('rating', False)
+        text = request.POST.get('text', False)
+        photo = request.POST.get('photo', False)
+        restaurant_id = request.POST.get('restaurant_id', False)
+
+        if not (rating and text and photo and restaurant_id):
+            return HttpResponse(json.dumps({'status': 'error', 'message':'Please provide restaurant_id, rating, text and photo (url)'}), content_type="application/json")
+
+        try:
+            restaurant = Restaurant.objects.get(id=int(restaurant_id))
+        except:
+            return HttpResponse(json.dumps({'status': 'error', 'message':'Restaurant does not exist'}), content_type="application/json")
+
+        review = Review(user=user, restaurant=restaurant, rating=rating, text=text, photo=photo)
+        review.save()
+
+        review_obj = {'id': review.id, 'photo': review.photo, 'rating': review.rating, 'text': review.text, 'user':{'id': user.id, 'photo': user.photo}}
+
+    return HttpResponse(json.dumps({'status': 'success', 'review': review_obj}), content_type="application/json")
+
+@csrf_exempt
+def ReviewEditView(request, username, review_id):
+
+    user = User.objects.get(username=username)
+
+    try:
+        review = Review.objects.get(id=review_id)
+    except:
+        return HttpResponse(json.dumps({'status': 'error', 'message':'Review does not exist'}), content_type="application/json")
+
+    if request.method == 'GET':
+        return HttpResponse(json.dumps({'status': 'error', 'message':'accepting POST only'}), content_type="application/json")
+
+    elif request.method == "POST":
+        if review.user.id != user.id:
+            return HttpResponse(json.dumps({'status': 'error', 'message':'This user is editing a review that is not his'}), content_type="application/json")
+
+        rating = request.POST.get('rating', False)
+        text = request.POST.get('text', False)
+        photo = request.POST.get('photo', False)
+
+        if rating:
+            review.rating = rating
+        if text:
+            review.text = text
+        if photo:
+            review.photo = photo
+
+        review.save()
+
+        review_obj = {'id': review.id, 'photo': review.photo, 'rating': review.rating, 'text': review.text, 'user':{'id': user.id, 'photo': user.photo}}
+
+    return HttpResponse(json.dumps({'status': 'success', 'review': review_obj}), content_type="application/json")
+
+@csrf_exempt
+def ReviewDeleteView(request, username, review_id):
+
+    user = User.objects.get(username=username)
+
+    try:
+        review = Review.objects.get(id=review_id)
+    except:
+        return HttpResponse(json.dumps({'status': 'error', 'message':'Review does not exist'}), content_type="application/json")
+
+    if request.method == 'GET':
+        return HttpResponse(json.dumps({'status': 'error', 'message':'accepting POST only'}), content_type="application/json")
+
+    elif request.method == "POST":
+
+        if review.user.id != user.id:
+            return HttpResponse(json.dumps({'status': 'error', 'message':'This user is deleting a review that is not his'}), content_type="application/json")
+
+        review.delete()
+
+    return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
 
 @csrf_exempt
 def DealsActivityListView(request):
