@@ -115,3 +115,8 @@ class FriendsActivity(models.Model):
             name = self.review.user.name
         return self.activity_type + ": " + name
 
+class Photo(models.Model):
+
+    url = models.CharField(max_length=200)
+    def __unicode__(self):
+        return self.url

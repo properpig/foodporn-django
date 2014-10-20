@@ -549,6 +549,13 @@ def FiltersView(request):
     return HttpResponse(json.dumps(filters), content_type="application/json")
 
 @csrf_exempt
+def PhotosView(request):
+
+    photos = [photo.url for photo in Photo.objects.all()]
+
+    return HttpResponse(json.dumps(photos), content_type="application/json")
+
+@csrf_exempt
 def ResetView(request, username):
 
     user = User.objects.get(username=username)
