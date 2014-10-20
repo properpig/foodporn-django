@@ -1,4 +1,5 @@
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
 
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -33,6 +34,9 @@ def FoodListView(request, username):
 
     food_list = Food.objects.all().select_related('user', 'restaurant')
 
+    if request.GET.get('search', False):
+        query_string = request.GET.get('search', False)
+        food_list = food_list.filter(Q(name__icontains=query_string) | Q(description__icontains=query_string))
     if request.GET.get('liked', False):
         food_list = food_list.filter(foods_liked__in=[user]).order_by('-id')
     if request.GET.get('explore', False):
@@ -49,7 +53,7 @@ def FoodListView(request, username):
         food_obj = {}
         food_obj['id'] = food.id
         food_obj['name'] = food.name
-        food_obj['description'] = food.description
+        # food_obj['description'] = food.description
         food_obj['price'] = '${0:0.2f}'.format(food.price)
 
         food_obj['photo'] = food.photo
@@ -154,6 +158,9 @@ def RestaurantsListView(request, username):
     restaurants = Restaurant.objects.all().select_related('user','restaurant')
     restaurants_list = []
 
+    if request.GET.get('search', False):
+        query_string = request.GET.get('search', False)
+        restaurants = restaurants.filter(Q(name__icontains=query_string) | Q(description__icontains=query_string))
     if request.GET.get('following', False):
         restaurants = restaurants.filter(restaurants_following__in=[user])
     if request.GET.get('recommended', False):
@@ -182,7 +189,7 @@ def RestaurantsListView(request, username):
         restaurant_obj['photo'] = restaurant.photo
         restaurant_obj['price_low'] = '${0:0.0f}'.format(restaurant.price_low)
         restaurant_obj['price_high'] = '${0:0.0f}'.format(restaurant.price_high)
-        restaurant_obj['amenities'] = [{'id': res.id, 'image': res.image} for res in restaurant.amenities.all()]
+        # restaurant_obj['amenities'] = [{'id': res.id, 'image': res.image} for res in restaurant.amenities.all()]
 
 
         # get the people following this restaurant
