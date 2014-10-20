@@ -352,6 +352,9 @@ def PeopleListView(request, username):
     people = User.objects.all()
     people_list = []
 
+    if request.GET.get('search', False):
+        query_string = request.GET.get('search', False)
+        people = people.filter(Q(name__icontains=query_string) | Q(username__icontains=query_string))
     if request.GET.get('following', False):
         people = people.filter(followers__in=[this_user])
     if request.GET.get('recommended', False):
