@@ -160,7 +160,7 @@ def RestaurantsListView(request, username):
 
     if request.GET.get('search', False):
         query_string = request.GET.get('search', False)
-        restaurants = restaurants.filter(Q(name__icontains=query_string) | Q(description__icontains=query_string))
+        restaurants = restaurants.filter(Q(name__icontains=query_string) | Q(description__icontains=query_string) | Q(location_name__icontains=query_string))
     if request.GET.get('following', False):
         restaurants = restaurants.filter(restaurants_following__in=[user])
     if request.GET.get('recommended', False):
