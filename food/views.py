@@ -459,6 +459,7 @@ def PeopleListView(request, username):
         user_obj['username'] = user.username
         user_obj['photo'] = user.photo
         user_obj['is_following'] = user in this_user.following.all()
+        user_obj['is_me'] = user.id == this_user.id
 
         user_obj['num_likes'] = user.foods_liked.all().count()
         # user_obj['likes'] = [{'food_id': food.id, 'photo': food.photo} for food in user.foods_liked.all()[:5]]
