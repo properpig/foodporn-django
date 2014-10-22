@@ -63,12 +63,10 @@ def FoodListView(request, username):
     if distance_min:
         distance_min = float(distance_min)
 
-    #sortinf
+    #sorting by non-derived field
     sort = request.GET.get('sort', False)
-    if sort:
-        # sort by likes is at the bottom (derived field)
-        if sort == 'price':
-            food_list = food_list.order_by('price')
+    if sort == 'price':
+        food_list = food_list.order_by('price')
 
     for food in food_list:
 
@@ -100,10 +98,12 @@ def FoodListView(request, username):
 
         food_list_serialized.append(food_obj)
 
+    # sorting by derived field
     if sort == 'likes':
         food_list_serialized = sorted(food_list_serialized, key=lambda x: x['num_likes'], reverse=True)
     elif sort == 'location':
         food_list_serialized = sorted(food_list_serialized, key=lambda x: x['dist'])
+
     return HttpResponse(json.dumps(food_list_serialized), content_type="application/json")
 
 @csrf_exempt
@@ -217,6 +217,26 @@ def RestaurantsListView(request, username):
         food_ids = Food.objects.filter(cuisine__in=cuisine_ids)
         restaurants = restaurants.filter(food__in=food_ids)
 
+    # filter by range
+    if request.GET.get('price_max', False):
+        price_max = request.GET.get('price_max', False)
+        restaurants = restaurants.filter(price_high__lte=int(price_max))
+    if request.GET.get('price_min', False):
+        price_min = request.GET.get('price_min', False)
+        restaurants = restaurants.filter(price_low__gte=int(price_min))
+
+    distance_max = request.GET.get('distance_max', False)
+    if distance_max:
+        distance_max = float(distance_max)
+    distance_min = request.GET.get('distance_min', False)
+    if distance_min:
+        distance_min = float(distance_min)
+
+    #sorting by non-derived field
+    sort = request.GET.get('sort', False)
+    if sort == 'price':
+        restaurants = restaurants.extra(select={'price_range': 'price_high + price_low'}).extra(order_by=['price_range'])
+
     # get distinct restaurants
     restaurants = unique(restaurants)
 
@@ -226,8 +246,18 @@ def RestaurantsListView(request, username):
         restaurant_obj['id'] = restaurant.id
         restaurant_obj['location_name'] = restaurant.location_name
         restaurant_obj['location'] = {'x':restaurant.location_x, 'y':restaurant.location_y}
+
         restaurant_obj['dist'] = haversine(float(user.location_x), float(user.location_y), float(restaurant.location_x), float(restaurant.location_y))
         restaurant_obj['distance'] = '{0:0.2f}km'.format(restaurant_obj['dist'])
+
+        # if a distance filter has been set, we only add qualifying restaurants
+        if distance_max:
+            if restaurant_obj['dist'] > distance_max:
+                continue
+        if distance_min:
+            if restaurant_obj['dist'] < distance_min:
+                continue
+
         restaurant_obj['photo'] = restaurant.photo
         restaurant_obj['price_low'] = '${0:0.0f}'.format(restaurant.price_low)
         restaurant_obj['price_high'] = '${0:0.0f}'.format(restaurant.price_high)
@@ -240,7 +270,28 @@ def RestaurantsListView(request, username):
 
         restaurant_obj['is_following'] = (restaurant.id in user_restaurants_ids)
 
+        # ratings
+        reviews = Review.objects.filter(restaurant__in=[restaurant])
+        if reviews.count():
+            rating = 0
+            for review in reviews:
+                rating = rating + review.rating
+            rating = rating / reviews.count()
+        else:
+            rating = 0
+
+        restaurant_obj['rating'] = rating
+        restaurant_obj['reviews_count'] = reviews.count()
+
         restaurants_list.append(restaurant_obj)
+
+    # sorting by derived field
+    if sort == 'followers':
+        restaurants_list = sorted(restaurants_list, key=lambda x: x['following_count'], reverse=True)
+    elif sort == 'location':
+        restaurants_list = sorted(restaurants_list, key=lambda x: x['dist'])
+    elif sort == 'ratings':
+        restaurants_list = sorted(restaurants_list, key=lambda x: x['rating'])
 
     return HttpResponse(json.dumps(restaurants_list), content_type="application/json")
 
@@ -495,6 +546,14 @@ def PeopleListView(request, username):
     if request.GET.get('recommended', False):
         people = people.filter(is_recommended=True)
 
+    # filters by range
+    likes_max = request.GET.get('likes_max', False)
+    likes_min = request.GET.get('likes_min', False)
+    followers_max = request.GET.get('followers_max', False)
+    followers_min = request.GET.get('followers_min', False)
+    reviews_max = request.GET.get('reviews_max', False)
+    reviews_min = request.GET.get('reviews_min', False)
+
     for user in people:
         user_obj = {}
         user_obj['id'] = user.id
@@ -506,13 +565,41 @@ def PeopleListView(request, username):
 
         user_obj['num_likes'] = user.foods_liked.all().count()
         # user_obj['likes'] = [{'food_id': food.id, 'photo': food.photo} for food in user.foods_liked.all()[:5]]
+        if likes_min:
+            if user_obj['num_likes'] < int(likes_min):
+                continue
+        if likes_max:
+            if user_obj['num_likes'] > int(likes_max):
+                continue
 
         user_obj['num_followers'] = user.followers.all().count()
+        if followers_min:
+            if user_obj['num_followers'] < int(followers_min):
+                continue
+        if followers_max:
+            if user_obj['num_followers'] > int(followers_max):
+                continue
 
         user_obj['num_reviews'] = Review.objects.filter(user=user).count()
         user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo, 'id':review.id} for review in Review.objects.filter(user=user)[:5]]
 
+        if reviews_min:
+            if user_obj['num_reviews'] < int(reviews_min):
+                continue
+        if reviews_max:
+            if user_obj['num_reviews'] > int(reviews_max):
+                continue
+
         people_list.append(user_obj)
+
+    sort = request.GET.get('sort', False)
+    # sorting by request.GET.get('search', False)derived field
+    if sort == 'likes':
+        people_list = sorted(people_list, key=lambda x: x['num_likes'], reverse=True)
+    elif sort == 'followers':
+        people_list = sorted(people_list, key=lambda x: x['num_followers'], reverse=True)
+    elif sort == 'reviews':
+        people_list = sorted(people_list, key=lambda x: x['num_reviews'], reverse=True)
 
     return HttpResponse(json.dumps(people_list), content_type="application/json")
 
