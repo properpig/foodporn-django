@@ -68,6 +68,8 @@ def FoodListView(request, username):
     if sort == 'price':
         food_list = food_list.order_by('price')
 
+    food_list = unique(food_list)
+
     for food in food_list:
 
         food_obj = {}
