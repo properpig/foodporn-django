@@ -6,7 +6,7 @@ from django.http import HttpResponse, QueryDict
 from django.core import serializers
 
 from food.models import *
-from utils import timesince, unique
+from utils import timesince, unique, haversine
 
 import json, decimal, time
 
@@ -48,13 +48,27 @@ def FoodListView(request, username):
         cuisine_ids = request.GET.get('cuisine_ids', False).split(',')
         food_list = food_list.filter(cuisine__in=cuisine_ids)
 
+    # filter by range
+    if request.GET.get('price_max', False):
+        price_max = request.GET.get('price_max', False)
+        food_list = food_list.filter(price__lte=int(price_max))
+    if request.GET.get('price_min', False):
+        price_min = request.GET.get('price_min', False)
+        food_list = food_list.filter(price__gte=int(price_min))
+
+    distance_max = request.GET.get('distance_max', False)
+    if distance_max:
+        distance_max = float(distance_max)
+    distance_min = request.GET.get('distance_min', False)
+    if distance_min:
+        distance_min = float(distance_min)
+
+    #sortinf
     sort = request.GET.get('sort', False)
     if sort:
         # sort by likes is at the bottom (derived field)
         if sort == 'price':
             food_list = food_list.order_by('price')
-        if sort == 'location':
-            food_list = sorted(food_list, key=lambda x: x.restaurant.location_x, reverse=True)
 
     for food in food_list:
 
@@ -63,6 +77,17 @@ def FoodListView(request, username):
         food_obj['name'] = food.name
         # food_obj['description'] = food.description
         food_obj['price'] = '${0:0.2f}'.format(food.price)
+
+        food_obj['dist'] = haversine(float(user.location_x), float(user.location_y), float(food.restaurant.location_x), float(food.restaurant.location_y))
+        food_obj['distance'] = '{0:0.2f}km'.format(food_obj['dist'])
+
+        # if a distance filter has been set, we only add qualifying restaurants
+        if distance_max:
+            if food_obj['dist'] > distance_max:
+                continue
+        if distance_min:
+            if food_obj['dist'] < distance_min:
+                continue
 
         food_obj['photo'] = food.photo
         food_obj['restaurant'] = food.restaurant.name
@@ -77,6 +102,8 @@ def FoodListView(request, username):
 
     if sort == 'likes':
         food_list_serialized = sorted(food_list_serialized, key=lambda x: x['num_likes'], reverse=True)
+    elif sort == 'location':
+        food_list_serialized = sorted(food_list_serialized, key=lambda x: x['dist'])
     return HttpResponse(json.dumps(food_list_serialized), content_type="application/json")
 
 @csrf_exempt
@@ -199,6 +226,8 @@ def RestaurantsListView(request, username):
         restaurant_obj['id'] = restaurant.id
         restaurant_obj['location_name'] = restaurant.location_name
         restaurant_obj['location'] = {'x':restaurant.location_x, 'y':restaurant.location_y}
+        restaurant_obj['dist'] = haversine(float(user.location_x), float(user.location_y), float(restaurant.location_x), float(restaurant.location_y))
+        restaurant_obj['distance'] = '{0:0.2f}km'.format(restaurant_obj['dist'])
         restaurant_obj['photo'] = restaurant.photo
         restaurant_obj['price_low'] = '${0:0.0f}'.format(restaurant.price_low)
         restaurant_obj['price_high'] = '${0:0.0f}'.format(restaurant.price_high)
