@@ -102,6 +102,8 @@ def FoodView(request, food_id, username):
     food_obj['cuisine'] = [{'name': cuisine.name, 'image': cuisine.image} for cuisine in food.cuisine.all().order_by('position')]
     food_obj['dietary'] = [{'name': diet.name, 'image': diet.image} for diet in food.dietary.all().order_by('position')]
 
+    food_obj['menu'] = [{'id': f.id, 'photo': f.photo, 'name': f.name, 'price':'${0:0.2f}'.format(f.price), 'num_likes': User.objects.filter(foods_liked__in=[food]).count()} for f in Food.objects.filter(restaurant=food.restaurant)]
+
     return HttpResponse(json.dumps(food_obj), content_type="application/json")
 
 @csrf_exempt
@@ -511,7 +513,7 @@ def UserView(request, user_id, username):
     user_obj['following'] = [{'id': person.id, 'photo': person.photo} for person in user.following.all()]
 
     user_obj['num_reviews'] = Review.objects.filter(user=user).count()
-    user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo, 'restaurant_x': review.restaurant.location_x, 'restaurant_y': review.restaurant.location_y} for review in Review.objects.filter(user=user)[:5]]
+    user_obj['reviews'] = [{'id': review.id, 'text':review.text, 'restaurant_id': review.restaurant.id, 'photo': review.photo, 'restaurant_x': review.restaurant.location_x, 'restaurant_y': review.restaurant.location_y} for review in Review.objects.filter(user=user)[:5]]
 
     return HttpResponse(json.dumps(user_obj), content_type="application/json")
 
