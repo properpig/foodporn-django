@@ -78,6 +78,7 @@ def FoodView(request, food_id, username):
     food_obj = {}
     food_obj['name'] = food.name
     food_obj['photo'] = food.photo
+    food_obj['price'] = '${0:0.2f}'.format(food.price)
     food_obj['restaurant'] = food.restaurant.name
     food_obj['restaurant_id'] = food.restaurant.id
     food_obj['description'] = food.description
