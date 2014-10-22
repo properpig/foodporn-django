@@ -48,6 +48,14 @@ def FoodListView(request, username):
         cuisine_ids = request.GET.get('cuisine_ids', False).split(',')
         food_list = food_list.filter(cuisine__in=cuisine_ids)
 
+    sort = request.GET.get('sort', False)
+    if sort:
+        # sort by likes is at the bottom (derived field)
+        if sort == 'price':
+            food_list = food_list.order_by('price')
+        if sort == 'location':
+            food_list = sorted(food_list, key=lambda x: x.restaurant.location_x, reverse=True)
+
     for food in food_list:
 
         food_obj = {}
@@ -67,6 +75,8 @@ def FoodListView(request, username):
 
         food_list_serialized.append(food_obj)
 
+    if sort == 'likes':
+        food_list_serialized = sorted(food_list_serialized, key=lambda x: x['num_likes'], reverse=True)
     return HttpResponse(json.dumps(food_list_serialized), content_type="application/json")
 
 @csrf_exempt
@@ -85,7 +95,7 @@ def FoodView(request, food_id, username):
 
     food_obj['num_likes'] = User.objects.filter(foods_liked__in=[food]).count()
     food_obj['less_than_8'] = food_obj['num_likes'] <= 7
-    food_obj['liked_by'] = [{'user_id':person.id, 'photo': person.photo} for person in User.objects.filter(foods_liked__in=[food])[:7]]
+    food_obj['liked_by'] = [{'user_id':person.id, 'photo': person.photo} for person in User.objects.filter(foods_liked__in=[food])[:6]]
     food_obj['is_liked'] = food in user.foods_liked.all()
     food_obj['is_disliked'] = food in user.foods_disliked.all()
 
@@ -428,6 +438,7 @@ def FriendsActivityListView(request, username):
             activity_obj['restaurant'] = activity.review.restaurant.name
             activity_obj['restaurant_id'] = activity.review.restaurant.id
             activity_obj['restaurant_photo'] = activity.review.restaurant.photo
+            activity_obj['review_id'] = activity.review.id
             activity_obj['photo'] = activity.review.photo
             activity_obj['rating'] = activity.review.rating
 
@@ -468,7 +479,7 @@ def PeopleListView(request, username):
         user_obj['num_followers'] = user.followers.all().count()
 
         user_obj['num_reviews'] = Review.objects.filter(user=user).count()
-        user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo} for review in Review.objects.filter(user=user)[:5]]
+        user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo, 'id':review.id} for review in Review.objects.filter(user=user)[:5]]
 
         people_list.append(user_obj)
 
