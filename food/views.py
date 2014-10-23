@@ -271,6 +271,7 @@ def RestaurantsListView(request, username):
         restaurant_obj['following_count'] = User.objects.filter(restaurants_following__in=[restaurant]).count()
 
         restaurant_obj['is_following'] = (restaurant.id in user_restaurants_ids)
+        restaurant_obj['is_recommended'] = restaurant.is_recommended
 
         # ratings
         reviews = Review.objects.filter(restaurant__in=[restaurant])
@@ -335,6 +336,8 @@ def RestaurantView(request, restaurant_id, username):
     restaurant_obj['followed_by'] = [{'user_id':user.id, 'username': user.username, 'photo': user.photo} for user in User.objects.filter(restaurants_following__in=[restaurant])[:7]]
     restaurant_obj['following_count'] = User.objects.filter(restaurants_following__in=[restaurant]).count()
     restaurant_obj['less_than_8'] = restaurant_obj['following_count'] <= 7
+
+    restaurant_obj['is_recommended'] = restaurant.is_recommended
 
     reviews = Review.objects.filter(restaurant__in=[restaurant])
     if reviews.count():
@@ -563,6 +566,7 @@ def PeopleListView(request, username):
         user_obj['username'] = user.username
         user_obj['photo'] = user.photo
         user_obj['is_following'] = user in this_user.following.all()
+        user_obj['is_recommended'] = user.is_recommended
         user_obj['is_me'] = user.id == this_user.id
 
         user_obj['num_likes'] = user.foods_liked.all().count()
@@ -619,6 +623,7 @@ def UserView(request, user_id, username):
     user_obj['bio'] = user.bio
     user_obj['join_date'] = user.join_date.strftime("%d %B %Y")
     user_obj['is_following'] = user in this_user.following.all()
+    user_obj['is_recommended'] = user.is_recommended
     user_obj['is_me'] = user.id == this_user.id
 
     user_obj['num_likes'] = user.foods_liked.all().count()
