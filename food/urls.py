@@ -38,8 +38,4 @@ urlpatterns = patterns('',
   url(r'^photos/list/', views.PhotosView, name='photolist'),
 
   url(r'^reset/(?P<username>\w+)/', views.ResetView, name='reset'),
-)
-
-urlpatterns = [
-    # ... the rest of your URLconf goes here ...
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
