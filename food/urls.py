@@ -1,5 +1,10 @@
 from django.conf.urls import patterns, url
 
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+
 from food import views
 
 urlpatterns = patterns('',
@@ -34,3 +39,7 @@ urlpatterns = patterns('',
 
   url(r'^reset/(?P<username>\w+)/', views.ResetView, name='reset'),
 )
+
+urlpatterns = [
+    # ... the rest of your URLconf goes here ...
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
