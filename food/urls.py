@@ -36,6 +36,7 @@ urlpatterns = patterns('',
   url(r'^directions/(?P<restaurant_id>\d+)/(?P<username>\w+)/', views.DirectionsView, name='directions'),
 
   url(r'^photos/list/', views.PhotosView, name='photolist'),
+  url(r'^images/list/', views.ImageListView, name='imageslist'),
 
   url(r'^reset/(?P<username>\w+)/', views.ResetView, name='reset'),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

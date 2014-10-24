@@ -704,5 +704,24 @@ def ResetView(request, username):
 
     return HttpResponse(json.dumps({'message': 'deleted all foods liked and disliked!'}), content_type="application/json")
 
+@csrf_exempt
+def ImageListView(request):
+
+    images = [obj for obj in Amenity.objects.values('image')]
+    images = images + [obj for obj in Diet.objects.values('image')]
+    images = images + [obj for obj in Cuisine.objects.values('image')]
+
+    images = images + [obj for obj in User.objects.values('photo')]
+    images = images + [obj for obj in Restaurant.objects.values('photo')]
+    images = images + [obj for obj in Food.objects.values('photo')]
+    images = images + [obj for obj in Review.objects.values('photo')]
+
+    images = images + [obj for obj in Photo.objects.values('url')]
+
+    return HttpResponse(json.dumps(images), content_type="application/json")
+
+
+
+
 
 
