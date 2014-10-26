@@ -39,6 +39,8 @@ def FoodListView(request, username):
         food_list = food_list.filter(Q(name__icontains=query_string) | Q(description__icontains=query_string))
     if request.GET.get('liked', False):
         food_list = food_list.filter(foods_liked__in=[user]).order_by('-id')
+    if request.GET.get('disliked', False):
+        food_list = food_list.filter(foods_disliked__in=[user]).order_by('-id')
     if request.GET.get('explore', False):
         food_list = food_list.exclude(foods_liked__in=[user]).exclude(foods_disliked__in=[user]).order_by('id')
     if request.GET.get('dietary_ids', False):
