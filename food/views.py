@@ -350,7 +350,7 @@ def RestaurantView(request, restaurant_id, username):
 
     restaurant_obj['rating'] = rating
     restaurant_obj['reviews_count'] = reviews.count()
-    restaurant_obj['reviews'] = [{'id': review.id, 'photo': review.photo, 'rating': review.rating, 'text': review.text, 'user':{'id': user.id, 'photo': user.photo}} for review in reviews]
+    restaurant_obj['reviews'] = [{'id': review.id, 'photo': review.photo, 'rating': review.rating, 'text': review.text, 'user':{'id': review.user.id, 'photo': review.user.photo}} for review in reviews]
 
     restaurant_obj['foods'] = [{'id': food.id, 'photo': food.photo, 'name': food.name, 'price':'${0:0.2f}'.format(food.price), 'num_likes': User.objects.filter(foods_liked__in=[food]).count()} for food in Food.objects.filter(restaurant=restaurant)]
     restaurant_obj['food_count'] = Food.objects.filter(restaurant=restaurant).count()
@@ -587,7 +587,7 @@ def PeopleListView(request, username):
                 continue
 
         user_obj['num_reviews'] = Review.objects.filter(user=user).count()
-        user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo, 'id':review.id} for review in Review.objects.filter(user=user)[:5]]
+        user_obj['reviews'] = [{'restaurant_id': review.restaurant.id, 'photo': review.photo, 'id':review.id} for review in Review.objects.filter(user=user)[:6]]
 
         if reviews_min:
             if user_obj['num_reviews'] < int(reviews_min):
