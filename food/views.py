@@ -722,8 +722,29 @@ def ImageListView(request):
 
     return HttpResponse(json.dumps(images), content_type="application/json")
 
+@csrf_exempt
+def SendSms(request):
 
+    from twilio.rest import TwilioRestClient
+    from twilio import TwilioRestException
 
+    # Your Account Sid and Auth Token from twilio.com/user/account
+    account_sid = "ACa6126c30373e0db30f6a7e3cbfbbf26d"
+    auth_token  = "ddf7ba20f161c8e6c7eba8cbbf444809"
+    client = TwilioRestClient(account_sid, auth_token)
 
+    message = request.POST.get('message', 'none')
+    handphone = request.POST.get('handphone', 'none')
+
+    try:
+        msg = client.messages.create(body=message,
+            to=handphone,    # Replace with your phone number
+            from_="+13308994528") # Replace with your Twilio number
+
+        return HttpResponse(json.dumps({'success': msg.date_updated}), content_type="application/json")
+
+    except TwilioRestException as e:
+
+        return HttpResponse(json.dumps({'error': str(e)}), content_type="application/json")
 
 

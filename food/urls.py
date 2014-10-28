@@ -39,4 +39,7 @@ urlpatterns = patterns('',
   url(r'^images/list/', views.ImageListView, name='imageslist'),
 
   url(r'^reset/(?P<username>\w+)/', views.ResetView, name='reset'),
+
+  url(r'^sms/', views.SendSms, name='sendsms'),
+
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
