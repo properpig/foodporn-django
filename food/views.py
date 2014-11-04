@@ -18,10 +18,15 @@ def test(request):
 @csrf_exempt
 def UserLoginView(request):
     username = request.GET.get('username', 'john') #defaults to john
+    page = request.GET.get('page', '')
     try:
         user = User.objects.get(username=username)
     except:
         user = User.objects.get(username='john')
+
+    # log the event
+    event = Event(actor=user, ui_type='A', page=page, event_type='page visit')
+    event.save()
 
     user_obj = {'id': user.id, 'name': user.name, 'photo': user.photo}
     return HttpResponse(json.dumps(user_obj), content_type="application/json")
@@ -156,6 +161,10 @@ def FoodLikeView(request, food_id, username):
 
     user.save()
 
+    # log the event
+    event = Event(actor=user, ui_type='A', event_type='like')
+    event.save()
+
     return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
 
 @csrf_exempt
@@ -176,6 +185,11 @@ def FoodDislikeView(request, food_id, username):
         user.foods_liked.remove(food)
 
     user.save()
+
+    # log the event
+    event = Event(actor=user, ui_type='A', event_type='dislike')
+    event.save()
+
     return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
 
 @csrf_exempt
@@ -191,6 +205,11 @@ def FoodResetView(request, food_id, username):
         user.foods_liked.remove(food)
 
     user.save()
+
+    # log the event
+    event = Event(actor=user, ui_type='A', event_type='undo')
+    event.save()
+
     return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
 
 @csrf_exempt
