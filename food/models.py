@@ -131,3 +131,12 @@ class Event(models.Model):
 
     def __unicode__(self):
         return self.timestamp.strftime("%b %d %H:%M:%S") + ": " + self.actor.name + ", " + self.event_type + ", " + self.page
+
+class History(models.Model):
+    user = models.ForeignKey(User, null=True, blank=True)
+    food = models.ForeignKey(Food, null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __unicode__(self):
+        return self.timestamp.strftime("%b %d %H:%M:%S") + ": " + self.user.name + ", " + self.food.name
+

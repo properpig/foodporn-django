@@ -14,6 +14,7 @@ urlpatterns = patterns('',
   url(r'^login/', views.LoginView, name='login'),
 
   url(r'^food/list/(?P<username>\w+)/', views.FoodListView, name='foodlist'),
+  url(r'^food/history/(?P<username>\w+)/', views.FoodHistoryView, name='foodhistory'),
   url(r'^food/like/(?P<food_id>\d+)/(?P<username>\w+)/', views.FoodLikeView, name='foodlike'),
   url(r'^food/dislike/(?P<food_id>\d+)/(?P<username>\w+)/', views.FoodDislikeView, name='fooddislike'),
   url(r'^food/reset/(?P<food_id>\d+)/(?P<username>\w+)/', views.FoodResetView, name='fooddislike'),

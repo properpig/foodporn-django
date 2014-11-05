@@ -165,6 +165,14 @@ def FoodLikeView(request, food_id, username):
     user = User.objects.get(username=username)
     food = Food.objects.get(id=food_id)
 
+    # log the event
+    event = Event(actor=user, ui_type='A', event_type='like')
+    event.save()
+
+    # history
+    history = History(user=user, food=food)
+    history.save()
+
     if user.foods_liked.filter(id=food.id):
         user.foods_liked.remove(food)
 
@@ -178,10 +186,6 @@ def FoodLikeView(request, food_id, username):
 
     user.save()
 
-    # log the event
-    event = Event(actor=user, ui_type='A', event_type='like')
-    event.save()
-
     return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
 
 @csrf_exempt
@@ -189,6 +193,14 @@ def FoodDislikeView(request, food_id, username):
 
     user = User.objects.get(username=username)
     food = Food.objects.get(id=food_id)
+
+    # log the event
+    event = Event(actor=user, ui_type='A', event_type='dislike')
+    event.save()
+
+    # history
+    history = History(user=user, food=food)
+    history.save()
 
     if user.foods_disliked.filter(id=food.id):
         user.foods_disliked.remove(food)
@@ -203,10 +215,6 @@ def FoodDislikeView(request, food_id, username):
 
     user.save()
 
-    # log the event
-    event = Event(actor=user, ui_type='A', event_type='dislike')
-    event.save()
-
     return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
 
 @csrf_exempt
@@ -214,6 +222,14 @@ def FoodResetView(request, food_id, username):
 
     user = User.objects.get(username=username)
     food = Food.objects.get(id=food_id)
+
+    # log the event
+    event = Event(actor=user, ui_type='A', event_type='undo')
+    event.save()
+
+    # history
+    history = History(user=user, food=food)
+    history.save()
 
     if user.foods_disliked.filter(id=food.id):
         user.foods_disliked.remove(food)
@@ -223,11 +239,40 @@ def FoodResetView(request, food_id, username):
 
     user.save()
 
-    # log the event
-    event = Event(actor=user, ui_type='A', event_type='undo')
-    event.save()
-
     return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
+
+@csrf_exempt
+def FoodHistoryView(request, username):
+
+    user = User.objects.get(username=username)
+    history = History.objects.filter(user=user).order_by('-timestamp')
+
+    food_list = []
+
+    seen = set()
+    unique_history = [x for x in history if x.food not in seen and not seen.add(x.food)]
+
+    for item in unique_history:
+        food = item.food
+
+        food_obj = {}
+        food_obj['id'] = food.id
+        food_obj['name'] = food.name
+        # food_obj['description'] = food.description
+        food_obj['price'] = '${0:0.2f}'.format(food.price)
+
+        food_obj['photo'] = food.photo
+        food_obj['restaurant'] = food.restaurant.name
+        food_obj['restaurant_id'] = food.restaurant.id
+
+        food_obj['is_liked'] = food in user.foods_liked.all()
+        food_obj['num_likes'] = User.objects.filter(foods_liked__in=[food]).count()
+
+        food_obj['timestamp'] = item.timestamp.strftime("%b %d %H:%M:%S")
+
+        food_list.append(food_obj)
+
+    return HttpResponse(json.dumps(food_list), content_type="application/json")
 
 @csrf_exempt
 def RestaurantsListView(request, username):
