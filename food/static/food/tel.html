@@ -1,0 +1,67 @@
+<html>
+  <head>
+    <style>
+      #phone-numbers {
+        height: 200px;
+      }
+    </style>
+
+    <link rel="stylesheet" href="css/foundation.css">
+  </head>
+
+  <body>
+    Enter phone number: <br />
+    <input id="phone-number"></input> <br />
+    <p id="output"></p>
+
+    <button class="submit">Send SMS</button> <br/ >
+
+    <script src="scripts/libs/jquery-1.11.1.min.js"></script>
+
+    <script type="text/javascript">
+      (function() {
+
+        // attach event listener to listen for changes to our text area
+        $('#phone-number').bind('input propertychange', function() {
+
+          // get the entered text
+          var text = $('#phone-number').val();
+
+          if (text.indexOf('+65') === -1) {
+            text = '+65' + text;
+          }
+          var output = 'An SMS will be sent to <span id="output-number">' + text + '</span>';
+
+          $('#output').html(output);
+
+        });
+
+        $('.submit').click(function() {
+
+          var handphone = $('#output-number').text();
+
+          if (handphone.length < 1) {
+            return;
+          }
+
+          //128.199.140.174
+          $.post( 'http://localhost:8000/foodporn/verify/', {handphone: handphone}, function(data) {
+            if (data.success) {
+              $('.status').text('Message Sent');
+            } else {
+              $('.status').text('Error');
+            }
+          }, "json");
+
+          console.log(handphone);
+
+          $(this).unbind("click");
+          $(this).text('Messages Queued');
+          $(this).blur();
+
+        });
+
+      })();
+    </script>
+  </body>
+<html>
