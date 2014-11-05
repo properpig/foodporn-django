@@ -807,7 +807,7 @@ def SendVerification(request):
 
     #get the hash
     generated_code = md5(user.username+"food!").hexdigest()
-    link = "http://128.199.140.174:8000/static/food/login.html?username=" + user.username + "&vcode=" + generated_code
+    link = "http://128.199.140.174:8000/static/food/landing.html?username=" + user.username + "&vcode=" + generated_code
 
     message = "Please visit this link " + link + " in a Chrome browser."
 
