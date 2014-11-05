@@ -785,6 +785,8 @@ def ResetView(request, username):
 
     user.save()
 
+    History.objects.filter(user=user).delete()
+
     return HttpResponse(json.dumps({'message': 'deleted all foods liked and disliked!'}), content_type="application/json")
 
 @csrf_exempt
