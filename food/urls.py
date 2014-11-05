@@ -10,7 +10,8 @@ from food import views
 urlpatterns = patterns('',
   # ex: /orders/
   url(r'^test/', views.test, name='test'),
-  url(r'^login/', views.UserLoginView, name='userlogin'),
+  url(r'^nav/', views.UserNavView, name='nav'),
+  url(r'^login/', views.LoginView, name='login'),
 
   url(r'^food/list/(?P<username>\w+)/', views.FoodListView, name='foodlist'),
   url(r'^food/like/(?P<food_id>\d+)/(?P<username>\w+)/', views.FoodLikeView, name='foodlike'),

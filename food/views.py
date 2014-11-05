@@ -7,6 +7,7 @@ from django.core import serializers
 
 from food.models import *
 from utils import timesince, unique, haversine
+from md5 import md5
 
 import json, decimal, time
 
@@ -16,7 +17,23 @@ def test(request):
     return HttpResponse("hello")
 
 @csrf_exempt
-def UserLoginView(request):
+def LoginView(request):
+    username = request.GET.get('username', False)
+    code = request.GET.get('vcode', False)
+
+    if (not username) or (not code):
+        return HttpResponse(json.dumps({'error': 'please supply username and vcode'}), content_type="application/json")
+
+
+    generated_code = md5(username+"food!").hexdigest()
+
+    if (generated_code != code):
+        return HttpResponse(json.dumps({'error': 'code is wrong'}), content_type="application/json")
+
+    return HttpResponse(json.dumps({'success': 'foodie ' + username}), content_type="application/json")
+
+@csrf_exempt
+def UserNavView(request):
     username = request.GET.get('username', 'john') #defaults to john
     page = request.GET.get('page', '')
     try:
