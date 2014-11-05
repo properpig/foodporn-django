@@ -44,8 +44,7 @@
             return;
           }
 
-          //128.199.140.174
-          $.post( 'http://localhost:8000/foodporn/verify/', {handphone: handphone}, function(data) {
+          $.post( 'http://128.199.140.174:8000/foodporn/verify/', {handphone: handphone}, function(data) {
             if (data.success) {
               $('.status').text('Message Sent');
             } else {
