@@ -804,7 +804,6 @@ def SendVerification(request):
         # assign this handphone number to a new user
         user = User.objects.filter(handphone=None)[0]
         user.handphone = handphone
-        user.save()
 
     #get the hash
     generated_code = md5(user.username+"food!").hexdigest()
@@ -816,6 +815,9 @@ def SendVerification(request):
         msg = client.messages.create(body=message,
             to=handphone,    # Replace with your phone number
             from_="+13308994528") # Replace with your Twilio number
+
+        # if things went well, save the handphone number
+        user.save()
 
         return HttpResponse(json.dumps({'success': msg.date_updated}), content_type="application/json")
 
