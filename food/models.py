@@ -59,6 +59,7 @@ class User(models.Model):
     name = models.CharField(max_length=100)
     photo = models.CharField(max_length=200)
     is_recommended = models.BooleanField(default=False)
+    handphone = models.CharField(max_length=14, null=True)
 
     restaurants_following = models.ManyToManyField(Restaurant, null=True, blank=True, related_name="restaurants_following")
     foods_liked = models.ManyToManyField(Food, null=True, blank=True, related_name="foods_liked")

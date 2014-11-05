@@ -42,5 +42,6 @@ urlpatterns = patterns('',
   url(r'^reset/(?P<username>\w+)/', views.ResetView, name='reset'),
 
   url(r'^sms/', views.SendSms, name='sendsms'),
+  url(r'^verify/', views.SendVerification, name='sendverification'),
 
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

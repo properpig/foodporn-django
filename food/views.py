@@ -783,4 +783,44 @@ def SendSms(request):
 
         return HttpResponse(json.dumps({'error': str(e)}), content_type="application/json")
 
+@csrf_exempt
+def SendVerification(request):
+
+    from twilio.rest import TwilioRestClient
+    from twilio import TwilioRestException
+
+    # Your Account Sid and Auth Token from twilio.com/user/account
+    account_sid = "ACa6126c30373e0db30f6a7e3cbfbbf26d"
+    auth_token  = "ddf7ba20f161c8e6c7eba8cbbf444809"
+    client = TwilioRestClient(account_sid, auth_token)
+
+    handphone = request.POST.get('handphone', 'none')
+
+    # attempt to get the user with this handphone number
+    try:
+        user = User.objects.get(handphone=handphone)
+    except:
+        # no user has this handphone number yet
+        # assign this handphone number to a new user
+        user = User.objects.filter(handphone=None)[0]
+        user.handphone = handphone
+        user.save()
+
+    #get the hash
+    generated_code = md5(user.username+"food!").hexdigest()
+    link = "http://128.199.140.174:8000/static/food/login.html?username=" + user.username + "&vcode=" + generated_code
+
+    message = "Please visit this link " + link + " in a Chrome browser."
+
+    try:
+        msg = client.messages.create(body=message,
+            to=handphone,    # Replace with your phone number
+            from_="+13308994528") # Replace with your Twilio number
+
+        return HttpResponse(json.dumps({'success': msg.date_updated}), content_type="application/json")
+
+    except TwilioRestException as e:
+
+        return HttpResponse(json.dumps({'error': str(e)}), content_type="application/json")
+
 
