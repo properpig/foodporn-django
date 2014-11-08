@@ -266,6 +266,7 @@ def FoodHistoryView(request, username):
         food_obj['restaurant_id'] = food.restaurant.id
 
         food_obj['is_liked'] = food in user.foods_liked.all()
+        food_obj['is_disliked'] = food in user.foods_disliked.all()
         food_obj['num_likes'] = User.objects.filter(foods_liked__in=[food]).count()
 
         food_obj['timestamp'] = item.timestamp.strftime("%b %d %H:%M:%S")
