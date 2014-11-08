@@ -152,6 +152,7 @@ def FoodView(request, food_id, username):
     food_obj['is_liked'] = food in user.foods_liked.all()
     food_obj['is_disliked'] = food in user.foods_disliked.all()
 
+
     food_obj['cuisine'] = [{'name': cuisine.name, 'image': cuisine.image} for cuisine in food.cuisine.all().order_by('position')]
     food_obj['dietary'] = [{'name': diet.name, 'image': diet.image} for diet in food.dietary.all().order_by('position')]
 
@@ -267,6 +268,7 @@ def FoodHistoryView(request, username):
 
         food_obj['is_liked'] = food in user.foods_liked.all()
         food_obj['is_disliked'] = food in user.foods_disliked.all()
+        food_obj['is_neither'] = (not food_obj['is_liked']) and (not food_obj['is_disliked'])
         food_obj['num_likes'] = User.objects.filter(foods_liked__in=[food]).count()
 
         food_obj['timestamp'] = item.timestamp.strftime("%b %d %H:%M:%S")
