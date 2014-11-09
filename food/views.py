@@ -2,7 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 
 from django.shortcuts import render
-from django.http import HttpResponse, QueryDict
+from django.http import HttpResponse, QueryDict, HttpResponseRedirect
 from django.core import serializers
 
 from food.models import *
@@ -836,16 +836,21 @@ def SendSms(request):
 @csrf_exempt
 def SendVerification(request):
 
-    from twilio.rest import TwilioRestClient
-    from twilio import TwilioRestException
+    # from twilio.rest import TwilioRestClient
+    # from twilio import TwilioRestException
 
-    # Your Account Sid and Auth Token from twilio.com/user/account
-    account_sid = "ACa6126c30373e0db30f6a7e3cbfbbf26d"
-    auth_token  = "ddf7ba20f161c8e6c7eba8cbbf444809"
-    client = TwilioRestClient(account_sid, auth_token)
+    # # Your Account Sid and Auth Token from twilio.com/user/account
+    # account_sid = "ACa6126c30373e0db30f6a7e3cbfbbf26d"
+    # auth_token  = "ddf7ba20f161c8e6c7eba8cbbf444809"
+    # client = TwilioRestClient(account_sid, auth_token)
 
     handphone = request.GET.get('handphone', 'none')
     intervene = request.GET.get('intervene', False)
+    vcode = request.GET.get('vcode', 'none')
+
+    #check if the code is correct
+    if vcode != "c966671f1a8b1eeaa2141c98f827b6ee":
+        return HttpResponse(json.dumps({'error': 'Sorry! It appears that your vcode is invalid/not provided!'}), content_type="application/json")
 
     if "+65" not in handphone:
         handphone = "+65" + handphone
@@ -858,28 +863,31 @@ def SendVerification(request):
         # assign this handphone number to a new user
         user = User.objects.filter(handphone=None)[0]
         user.handphone = handphone
+        user.save()
 
     #get the hash
     generated_code = md5(user.username+"food!").hexdigest()
-    link = "http://128.199.140.174:8000/static/food/landing.html?username=" + user.username + "&vcode=" + generated_code
+    link = "http://128.199.140.174:8000/static/" + user.ui_type + "/landing.html?username=" + user.username + "&vcode=" + generated_code
 
-    message = "Please visit this link " + link + " in a Chrome browser."
+    # message = "Please visit this link " + link + " in a Chrome browser."
 
-    if intervene:
-        handphone = "+6590903026"
+    return HttpResponseRedirect(link)
 
-    try:
-        msg = client.messages.create(body=message,
-            to=handphone,    # Replace with your phone number
-            from_="+13308994528") # Replace with your Twilio number
+    # if intervene:
+        # handphone = "+6590903026"
 
-        # if things went well, save the handphone number
-        user.save()
+    # try:
+    #     msg = client.messages.create(body=message,
+    #         to=handphone,    # Replace with your phone number
+    #         from_="+13308994528") # Replace with your Twilio number
 
-        return HttpResponse(json.dumps({'success': msg.date_updated}), content_type="application/json")
+    #     # if things went well, save the handphone number
+    #     user.save()
 
-    except TwilioRestException as e:
+    #     return HttpResponse(json.dumps({'success': msg.date_updated}), content_type="application/json")
 
-        return HttpResponse(json.dumps({'error': str(e)}), content_type="application/json")
+    # except TwilioRestException as e:
+
+    #     return HttpResponse(json.dumps({'error': str(e)}), content_type="application/json")
 
 

@@ -56,6 +56,7 @@ class Food(models.Model):
 
 class User(models.Model):
     username = models.CharField(max_length=100)
+    ui_type = models.CharField(max_length=20, blank=True, null=True)
     name = models.CharField(max_length=100)
     photo = models.CharField(max_length=200)
     is_recommended = models.BooleanField(default=False)
