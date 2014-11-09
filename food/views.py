@@ -836,21 +836,21 @@ def SendSms(request):
 @csrf_exempt
 def SendVerification(request):
 
-    # from twilio.rest import TwilioRestClient
-    # from twilio import TwilioRestException
+    from twilio.rest import TwilioRestClient
+    from twilio import TwilioRestException
 
-    # # Your Account Sid and Auth Token from twilio.com/user/account
-    # account_sid = "ACa6126c30373e0db30f6a7e3cbfbbf26d"
-    # auth_token  = "ddf7ba20f161c8e6c7eba8cbbf444809"
-    # client = TwilioRestClient(account_sid, auth_token)
+    # Your Account Sid and Auth Token from twilio.com/user/account
+    account_sid = "ACa6126c30373e0db30f6a7e3cbfbbf26d"
+    auth_token  = "ddf7ba20f161c8e6c7eba8cbbf444809"
+    client = TwilioRestClient(account_sid, auth_token)
 
     handphone = request.GET.get('handphone', 'none')
     intervene = request.GET.get('intervene', False)
-    vcode = request.GET.get('vcode', 'none')
+    # vcode = request.GET.get('vcode', 'none')
 
     #check if the code is correct
-    if vcode != "c966671f1a8b1eeaa2141c98f827b6ee":
-        return HttpResponse(json.dumps({'error': 'Sorry! It appears that your vcode is invalid/not provided!'}), content_type="application/json")
+    # if vcode != "c966671f1a8b1eeaa2141c98f827b6ee":
+    #     return HttpResponse(json.dumps({'error': 'Sorry! It appears that your vcode is invalid/not provided!'}), content_type="application/json")
 
     if "+65" not in handphone:
         handphone = "+65" + handphone
@@ -861,33 +861,39 @@ def SendVerification(request):
     except:
         # no user has this handphone number yet
         # assign this handphone number to a new user
-        user = User.objects.filter(handphone=None)[0]
+        user = User.objects.filter(handphone='')[0]
         user.handphone = handphone
-        user.save()
 
     #get the hash
     generated_code = md5(user.username+"food!").hexdigest()
     link = "http://128.199.140.174:8000/static/" + user.ui_type + "/landing.html?username=" + user.username + "&vcode=" + generated_code
 
-    # message = "Please visit this link " + link + " in a Chrome browser."
+    message = "Your unique FoodPorn link is ready! Please visit this link " + link + " in a Chrome browser."
 
-    return HttpResponseRedirect(link)
+    if intervene:
+        handphone = "+6590903026"
+        message = message + " send to " + request.GET.get('handphone', 'none')
 
-    # if intervene:
-        # handphone = "+6590903026"
+    try:
+        # msg = client.messages.create(body=message,
+        #     to=handphone,    # Replace with your phone number
+        #     from_="+13308994528") # Replace with your Twilio number
 
-    # try:
-    #     msg = client.messages.create(body=message,
-    #         to=handphone,    # Replace with your phone number
-    #         from_="+13308994528") # Replace with your Twilio number
+        # # if things went well, save the handphone number
+        # user.save()
 
-    #     # if things went well, save the handphone number
-    #     user.save()
+        forward_link = ""
 
-    #     return HttpResponse(json.dumps({'success': msg.date_updated}), content_type="application/json")
+        if user.ui_type == "food":
+            forward_link = "https://usan.typeform.com/to/umGlDT"
+        else:
+            forward_link = "https://usan.typeform.com/to/OQEMn8"
 
-    # except TwilioRestException as e:
 
-    #     return HttpResponse(json.dumps({'error': str(e)}), content_type="application/json")
+        return HttpResponse(json.dumps({'success': 'msg.date_updated', 'link': forward_link}), content_type="application/json")
+
+    except TwilioRestException as e:
+
+        return HttpResponse(json.dumps({'error': str(e)}), content_type="application/json")
 
 
