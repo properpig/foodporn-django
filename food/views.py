@@ -875,12 +875,12 @@ def SendVerification(request):
         message = message + " send to " + request.GET.get('handphone', 'none')
 
     try:
-        # msg = client.messages.create(body=message,
-        #     to=handphone,    # Replace with your phone number
-        #     from_="+13308994528") # Replace with your Twilio number
+        msg = client.messages.create(body=message,
+            to=handphone,    # Replace with your phone number
+            from_="+13308994528") # Replace with your Twilio number
 
-        # # if things went well, save the handphone number
-        # user.save()
+        # if things went well, save the handphone number
+        user.save()
 
         forward_link = ""
 
@@ -890,7 +890,7 @@ def SendVerification(request):
             forward_link = "https://usan.typeform.com/to/OQEMn8"
 
 
-        return HttpResponse(json.dumps({'success': 'msg.date_updated', 'link': forward_link}), content_type="application/json")
+        return HttpResponse(json.dumps({'success': msg.date_updated, 'link': forward_link}), content_type="application/json")
 
     except TwilioRestException as e:
 
