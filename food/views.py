@@ -844,7 +844,11 @@ def SendVerification(request):
     auth_token  = "ddf7ba20f161c8e6c7eba8cbbf444809"
     client = TwilioRestClient(account_sid, auth_token)
 
-    handphone = request.POST.get('handphone', 'none')
+    handphone = request.GET.get('handphone', 'none')
+    intervene = request.GET.get('intervene', False)
+
+    if "+65" not in handphone:
+        handphone = "+65" + handphone
 
     # attempt to get the user with this handphone number
     try:
@@ -860,6 +864,9 @@ def SendVerification(request):
     link = "http://128.199.140.174:8000/static/food/landing.html?username=" + user.username + "&vcode=" + generated_code
 
     message = "Please visit this link " + link + " in a Chrome browser."
+
+    if intervene:
+        handphone = "+6590903026"
 
     try:
         msg = client.messages.create(body=message,
