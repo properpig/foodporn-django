@@ -1,66 +1,115 @@
-<html>
-  <head>
-    <style>
-      #phone-numbers {
-        height: 200px;
+<html><head><link rel=stylesheet href=styles/libs/foundation.min.css><style>
+/*      body {
+        display: table-cell;
+        vertical-align: middle;
+        height: 100%;
+        width: 100%;
+      }*/
+      body {
+        padding-top: 5%;
       }
-    </style>
-
-    <link rel="stylesheet" href="css/foundation.css">
-  </head>
-
-  <body>
-    Enter phone number: <br />
-    <input id="phone-number"></input> <br />
-    <p id="output"></p>
-
-    <button class="submit">Send SMS</button> <br/ >
-
-    <script src="scripts/libs/jquery-1.11.1.min.js"></script>
-
-    <script type="text/javascript">
+      .hide {
+        display: none !important;
+      }
+      #phone-number {
+        background: #fafafa;
+        border: 0px;
+        border-radius: 3px;
+        padding: 1.5rem 0.7rem;
+        font-size: 1.4rem;
+      }
+      #output-number {
+        background: rgba(0,0,0,0.1);
+        padding: 3px 6px;
+        border-radius: 3px;
+      }
+      #output {
+        display: inline-block;
+        margin-left: 10px;
+      }
+    </style></head><body><div class=row><div class="small-12 columns"><img src=images/banner.svg></div></div><div class=row><div class="small-8 columns"><div class=row><div class="small-12 columns"><h3>Please enter your handphone number:</h3><h5 class=subheader>This will only be used to send the app link to your mobile phone.</h5></div></div><div class=row><div class="small-9 columns"><label><input type=text id=phone-number placeholder="e.g. 90123456"></label><small class=error>Please enter a valid, 8-digit handphone number</small></div></div><div class=row><div class="small-12 columns"></div></div><div class=row><div class="small-12 columns confirmation"><a class="submit button radius disabled">Submit</a><h5 id=output></h5></div></div><div class="panel callout radius"><h5>You should receive our SMS in a minute.</h5><h5><a class="proceed button radius">Proceed</a> when you receive our SMS.</h5><h6 class=subheader>Otherwise, please <a class=manualrequest>request for manual intervention</a>.</h6><h5><a class="manual button radius disabled">Requesting for manual intervention</a></h5></div></div></div><script src=scripts/libs/jquery-1.11.1.min.js></script><script type=text/javascript>
       (function() {
+
+        function linkProceedButton(data) {
+          $('.proceed').attr('href', data.link);
+        }
+
+        var submittedHP = '';
+
+        $('.error, .callout, .manual').hide();
+
+        $('.manualrequest').click(function(){
+          var manualButton = $('.manual');
+          manualButton.fadeIn();
+          $.get( 'http://128.199.140.174:8000/foodporn/verify/', {handphone: submittedHP, intervene: true}, function(data) {
+            if (data.success) {
+              manualButton.text('Help is on the way.');
+              manualButton.addClass('success');
+              linkProceedButton(data);
+            } else {
+              manualButton.text('Error. Sorry about this.');
+              manualButton.addClass('alert');
+            }
+          }, "json");
+        });
 
         // attach event listener to listen for changes to our text area
         $('#phone-number').bind('input propertychange', function() {
 
+          // make the form submittable
+          var submitBtn = $('.submit');
+          submitBtn.removeClass('disabled');
+          submitBtn.removeClass('alert');
+          submitBtn.text('Submit');
+          $('.error').hide();
+
           // get the entered text
           var text = $('#phone-number').val();
 
-          if (text.indexOf('+65') === -1) {
-            text = '+65' + text;
-          }
-          var output = 'An SMS will be sent to <span id="output-number">' + text + '</span>';
+          var output = 'An SMS will be sent to <span id="output-number">+65 ' + text + '</span>';
 
           $('#output').html(output);
 
         });
 
+        $('#phone-number').keyup(function (e) {
+            if (e.keyCode === 13) {
+              // simulate click of submit button
+              $('.submit').click();
+            }
+        });
+
         $('.submit').click(function() {
 
-          var handphone = $('#output-number').text();
+          var submitButton = $(this);
 
-          if (handphone.length < 1) {
+          var handphone = $('#output-number').text().slice(4);
+
+          if (handphone.length != 8) {
+            $('.error').fadeIn();
             return;
           }
 
+          submittedHP = handphone;
+
+          // $.get( 'http://128.199.140.174:8000/foodporn/verify/', {handphone: handphone}, function(data) {
           $.get( 'http://128.199.140.174:8000/foodporn/verify/', {handphone: handphone}, function(data) {
             if (data.success) {
-              $('.status').text('Message Sent');
+              submitButton.text('Message Sent');
+              $('.confirmation').fadeOut(700);
+              $('.callout').fadeIn();
+              linkProceedButton(data);
             } else {
-              $('.status').text('Error');
+              submitButton.text('Error');
+              submitButton.addClass('alert');
             }
           }, "json");
 
-          console.log(handphone);
-
-          $(this).unbind("click");
-          $(this).text('Messages Queued');
-          $(this).blur();
+          submitButton.addClass('disabled');
+          submitButton.text('Sending SMS');
+          submitButton.blur();
 
         });
 
       })();
-    </script>
-  </body>
-<html>
+    </script></body><html></html></html>
