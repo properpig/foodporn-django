@@ -1,10 +1,36 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=description><meta name=viewport content="width=device-width, initial-scale=1"><title>FoodPorn</title><script src=scripts/libs/libs.min.js></script><script src=scripts/libs/handlebars-v2.0.0.js></script><script src=scripts/libs/jquery.nouislider.all.js></script><meta name=viewport content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"><meta name=mobile-web-app-capable content=yes><link rel=icon sizes=192x192 href=images/touch/chrome-touch-icon-192x192.png><meta name=apple-mobile-web-app-capable content=yes><meta name=apple-mobile-web-app-status-bar-style content=black><meta name=apple-mobile-web-app-title content="Web Starter Kit"><link rel=apple-touch-icon-precomposed href=apple-touch-icon-precomposed.png><meta name=msapplication-TileImage content=images/touch/ms-touch-icon-144x144-precomposed.png><meta name=msapplication-TileColor content=#3372DF><link rel=stylesheet href=styles/components.css><link rel=stylesheet href=styles/main.css><link rel=stylesheet href=styles/secondary.css><link rel=stylesheet href=styles/libs/font-awesome.min.css><link rel=stylesheet href=styles/access.css></head><body><div class=container><div class=app-bar-container><div class=app-bar><div class=hamburger-container><img class=logo src=images/logo.svg></div><div class=app-name>Welcome</div></div><div class=icons></div></div><div class=navigation-drawer></div><div class=vignette></div><div class="main-div extended"><div class="note box"><img src=images/logo-black.svg><p>Some introduction to our app here.</p><p>Instructions + gif to add the app to homescreen and launch from there.</p><div><div class=checkbox></div>I'm launching this from my home screen</div><div class=proceed-button>Proceed</div></div></div></div><script>
+<!doctype html><html><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=description><meta name=viewport content="width=device-width, initial-scale=1"><title>FoodPorn</title><script src=scripts/libs/libs.min.js></script><script src=scripts/libs/handlebars-v2.0.0.js></script><script src=scripts/libs/jquery.nouislider.all.js></script><meta name=viewport content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"><meta name=mobile-web-app-capable content=yes><link rel=icon sizes=192x192 href=images/touch/chrome-touch-icon-192x192.png><meta name=apple-mobile-web-app-capable content=yes><meta name=apple-mobile-web-app-status-bar-style content=black><meta name=apple-mobile-web-app-title content="Web Starter Kit"><link rel=apple-touch-icon-precomposed href=apple-touch-icon-precomposed.png><meta name=msapplication-TileImage content=images/touch/ms-touch-icon-144x144-precomposed.png><meta name=msapplication-TileColor content=#3372DF><link rel=stylesheet href=styles/components.css><link rel=stylesheet href=styles/main.css><link rel=stylesheet href=styles/secondary.css><link rel=stylesheet href=styles/libs/font-awesome.min.css><link rel=stylesheet href=styles/access.css></head><body><div class=container><div class=app-bar-container><div class=app-bar><div class=hamburger-container><img class=logo src=images/logo.svg></div><div class=app-name>Welcome</div></div><div class=icons></div></div><div class=navigation-drawer></div><div class=vignette></div><div class="main-div extended"><div class="note box"><img src=images/logo-black.svg><p>Some introduction to our app here.</p><p>Instructions.</p><p>To take part in this survey, you should be accessing our application through a Chrome browser on your mobile device:</p><div><div id=is_mobile class=checkbox></div>Mobile device detected</div><div><div id=is_chrome class=checkbox></div>Chrome browser detected</div><div class=error><p>We were unable to detect your mobile phone/Chrome browser. Please double check that you are accessing the application from your phone, and that you are using a Chrome browser.</p></div><div class="proceed-button disabled">Proceed</div></div></div></div><script>
       var query_string = window.location.href.slice(window.location.href.indexOf('?') + 1);
-      $('.proceed-button').click(function() {
-        window.location = 'login.html?' + query_string;
-      });
-      $('.checkbox').click(function() {
-        $(this).addClass('selected');
-        $('.proceed-button').fadeIn();
+
+      // make call to API to check
+      $.get('http://128.199.140.174:8000/foodporn/uacheck/?' + query_string, function(data) {
+      // $.get('http://192.168.2.140:8000/foodporn/uacheck/?' + query_string, function(data) {
+
+        var proceed = true;
+        setTimeout(function() {
+          if (data.is_mobile) {
+            $('#is_mobile').addClass('selected');
+          } else {
+            $('#is_mobile').addClass('crossed');
+            proceed = false;
+          }
+
+          if (data.is_chrome) {
+            $('#is_chrome').addClass('selected');
+          } else {
+            $('#is_chrome').addClass('crossed');
+            proceed = false;
+          }
+
+          if (proceed) {
+            $('.proceed-button').removeClass('disabled');
+            $('.proceed-button').click(function() {
+              window.location = 'login.html?' + query_string;
+            });
+          } else {
+            $('.error').fadeIn();
+          }
+        }, 500);
+
+
       });
     </script></body></html>
