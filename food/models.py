@@ -128,10 +128,11 @@ class Event(models.Model):
     ui_type = models.CharField(max_length=20) ## A or B
     event_type = models.CharField(max_length=20) ## page visit, button click
     page = models.CharField(max_length=200, default="") ## page the user was on
+    swipe = models.BooleanField(default=False, blank=True) ## whether the user used the swipe action
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __unicode__(self):
-        return self.timestamp.strftime("%b %d %H:%M:%S") + ": " + self.actor.name + ", " + self.event_type + ", " + self.page
+        return self.timestamp.strftime("%b %d %H:%M:%S") + ": " + self.actor.name + ", " + self.event_type + ", " + self.page + ", swipe?" + str(self.swipe)
 
 class History(models.Model):
     user = models.ForeignKey(User, null=True, blank=True)

@@ -54,13 +54,26 @@ def FoodListView(request, username):
     food_list_serialized = []
     user = User.objects.get(username=username)
 
-    food_list = Food.objects.all().select_related('user', 'restaurant')
+    food_list = Food.objects.all().select_related('user', 'restaurant', 'food')
 
     if request.GET.get('search', False):
         query_string = request.GET.get('search', False)
         food_list = food_list.filter(Q(name__icontains=query_string) | Q(description__icontains=query_string))
     if request.GET.get('liked', False):
         food_list = food_list.filter(foods_liked__in=[user]).order_by('-id')
+    if request.GET.get('friends_like', False):
+        friends = [u['id'] for u in user.following.values('id')]
+        food_list = food_list.filter(foods_liked__in=friends).order_by('-id')
+    if request.GET.get('recommended', False):
+        restaurants = Restaurant.objects.filter(is_recommended=True)
+        food_list = food_list.filter(restaurant__in=restaurants).order_by('-id')
+    if request.GET.get('following', False):
+        restaurants = Restaurant.objects.filter(restaurants_following__in=[user])
+        food_list = food_list.filter(restaurant__in=restaurants).order_by('-id')
+    if request.GET.get('friends_following', False):
+        friends = user.following.all()
+        restaurants = Restaurant.objects.filter(restaurants_following__in=friends)
+        food_list = food_list.filter(restaurant__in=restaurants).order_by('-id')
     if request.GET.get('disliked', False):
         food_list = food_list.filter(foods_disliked__in=[user]).order_by('-id')
     if request.GET.get('explore', False):
@@ -167,7 +180,7 @@ def FoodLikeView(request, food_id, username):
     food = Food.objects.get(id=food_id)
 
     # log the event
-    event = Event(actor=user, ui_type='A', event_type='like')
+    event = Event(actor=user, ui_type='A', event_type='like', swipe=request.GET.get('swipe', False))
     event.save()
 
     # history
@@ -196,7 +209,7 @@ def FoodDislikeView(request, food_id, username):
     food = Food.objects.get(id=food_id)
 
     # log the event
-    event = Event(actor=user, ui_type='A', event_type='dislike')
+    event = Event(actor=user, ui_type='A', event_type='dislike', swipe=request.GET.get('swipe', False))
     event.save()
 
     # history
@@ -283,7 +296,7 @@ def RestaurantsListView(request, username):
     user = User.objects.get(username=username)
     user_restaurants_ids = [r.id for r in user.restaurants_following.all()]
 
-    restaurants = Restaurant.objects.all().select_related('user','restaurant')
+    restaurants = Restaurant.objects.all().select_related('user', 'restaurant', 'food')
     restaurants_list = []
 
     if request.GET.get('search', False):
@@ -291,8 +304,38 @@ def RestaurantsListView(request, username):
         restaurants = restaurants.filter(Q(name__icontains=query_string) | Q(description__icontains=query_string) | Q(location_name__icontains=query_string))
     if request.GET.get('following', False):
         restaurants = restaurants.filter(restaurants_following__in=[user])
+    if request.GET.get('friends_following', False):
+        friends = [u['id'] for u in user.following.values('id')]
+        restaurants = restaurants.filter(restaurants_following__in=friends)
     if request.GET.get('recommended', False):
         restaurants = restaurants.filter(is_recommended=True)
+    if request.GET.get('me_like', False):
+        resturant_ids = user.foods_liked.values('restaurant__id')
+        seen = set()
+        unique_rids = [r['restaurant__id'] for r in resturant_ids if r['restaurant__id'] not in seen and not seen.add(r['restaurant__id'])]
+        restaurants = restaurants.filter(id__in=unique_rids)
+    if request.GET.get('friends_like', False):
+        resturant_ids = user.following.values('foods_liked__restaurant__id')
+        seen = set()
+        unique_rids = [r['foods_liked__restaurant__id'] for r in resturant_ids if r['foods_liked__restaurant__id'] not in seen and not seen.add(r['foods_liked__restaurant__id'])]
+        restaurants = restaurants.filter(id__in=unique_rids)
+    if request.GET.get('me_review', False):
+        resturant_ids = Review.objects.filter(user=user).values('restaurant__id')
+        seen = set()
+        unique_rids = [r['restaurant__id'] for r in resturant_ids if r['restaurant__id'] not in seen and not seen.add(r['restaurant__id'])]
+        restaurants = restaurants.filter(id__in=unique_rids)
+    if request.GET.get('recommended_people_review', False):
+        users = User.objects.filter(is_recommended=True)
+        resturant_ids = Review.objects.filter(user__in=users).values('restaurant__id')
+        seen = set()
+        unique_rids = [r['restaurant__id'] for r in resturant_ids if r['restaurant__id'] not in seen and not seen.add(r['restaurant__id'])]
+        restaurants = restaurants.filter(id__in=unique_rids)
+    if request.GET.get('friends_review', False):
+        friends = user.following.all()
+        resturant_ids = Review.objects.filter(user__in=friends).values('restaurant__id')
+        seen = set()
+        unique_rids = [r['restaurant__id'] for r in resturant_ids if r['restaurant__id'] not in seen and not seen.add(r['restaurant__id'])]
+        restaurants = restaurants.filter(id__in=unique_rids)
     if request.GET.get('amenity_ids', False):
         amenity_ids = request.GET.get('amenity_ids', False).split(',')
         restaurants = restaurants.filter(amenities__in=amenity_ids)
