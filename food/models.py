@@ -73,6 +73,11 @@ class User(models.Model):
     bio = models.CharField(max_length=400, default="Food is an important part of a balanced diet.")
     join_date = models.DateTimeField(blank=True, null=True)
 
+    #user agent stuff
+    ua_browser = models.CharField(max_length=30, blank=True, null=True)
+    ua_os = models.CharField(max_length=30, blank=True, null=True)
+    ua_device = models.CharField(max_length=30, blank=True, null=True)
+
     def __unicode__(self):
         return self.username
 

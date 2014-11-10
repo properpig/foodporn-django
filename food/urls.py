@@ -44,5 +44,6 @@ urlpatterns = patterns('',
 
   url(r'^sms/', views.SendSms, name='sendsms'),
   url(r'^verify/', views.SendVerification, name='sendverification'),
+  url(r'^uacheck/', views.UACheckView, name='uacheck'),
 
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
