@@ -46,4 +46,6 @@ urlpatterns = patterns('',
   url(r'^verify/', views.SendVerification, name='sendverification'),
   url(r'^uacheck/', views.UACheckView, name='uacheck'),
 
+  url(r'^results/', views.ResultsView, name='results'),
+
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

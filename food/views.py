@@ -925,7 +925,7 @@ def ImageListView(request):
     images = images + [obj for obj in User.objects.values('photo')]
     images = images + [obj for obj in Restaurant.objects.values('photo')]
     images = images + [obj for obj in Food.objects.values('photo')]
-    images = images + [obj for obj in Review.objects.values('photo')]
+    # images = images + [obj for obj in Review.objects.values('photo')]
 
     images = images + [obj for obj in Photo.objects.values('url')]
 
@@ -1021,3 +1021,23 @@ def SendVerification(request):
         return HttpResponse(json.dumps({'error': str(e)}), content_type="application/json")
 
 
+@csrf_exempt
+def ResultsView(request):
+
+    heading = "Username\tHandphone No.\tDevice\tBrowser\tOS\tUI Type\tTime Spent\tSwipes\tTaps"
+    print heading
+
+    users = User.objects.all()
+
+    for user in users:
+        username = user.username if user.username else ""
+        ui_type = user.ui_type if user.ui_type else ""
+        handphone = user.handphone if user.handphone else ""
+        ua_browser = user.ua_browser if user.ua_browser else ""
+        ua_os = user.ua_os if user.ua_os else ""
+        ua_device = user.ua_device if user.ua_device else ""
+
+
+        print username + "\t" + handphone + "\t" + ua_device + "\t" + ua_browser + "\t" + ua_os + "\t" + ui_type + "\t"
+
+    return HttpResponse("okay")
