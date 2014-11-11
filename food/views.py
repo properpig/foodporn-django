@@ -11,6 +11,7 @@ from md5 import md5
 
 from user_agents import parse
 
+from datetime import datetime
 import json, decimal, time, re
 
 # Create your views here.
@@ -1025,7 +1026,7 @@ def SendVerification(request):
 def ResultsView(request):
 
     heading = "Username\tHandphone No.\tDevice\tBrowser\tOS\tUI Type\tTime Spent\tSwipes\tTaps"
-    print heading
+    output = heading + "\n"
 
     users = User.objects.all()
 
@@ -1037,7 +1038,24 @@ def ResultsView(request):
         ua_os = user.ua_os if user.ua_os else ""
         ua_device = user.ua_device if user.ua_device else ""
 
+        events = Event.objects.filter(actor = user).filter(event_type__contains="like")
 
-        print username + "\t" + handphone + "\t" + ua_device + "\t" + ua_browser + "\t" + ua_os + "\t" + ui_type + "\t"
+        if len(events) > 2:
+            start_ts = time.mktime(events[0].timestamp.timetuple())
+            end_ts = time.mktime(events[events.count()-1].timestamp.timetuple())
+            minutes_spent = int(end_ts-start_ts) / 60
+            seconds_spent = int(end_ts-start_ts) % 60
+            timespent = "{0:0>2d}:{1:0>2d}".format(minutes_spent, seconds_spent)
 
-    return HttpResponse("okay")
+            swipes = events.filter(swipe=True).count()
+            taps = events.filter(swipe=False).count()
+
+        else:
+            timespent = 0
+            swipes = 0
+            taps = 0
+
+        output += username + "\t" + handphone + "\t" + ua_device + "\t" + ua_browser + "\t" + ua_os + "\t" + ui_type + "\t" + str(timespent) + "\t" + str(swipes) + "\t" + str(taps)
+        output += "\n"
+
+    return HttpResponse(output, content_type="text/plain")
