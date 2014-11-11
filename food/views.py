@@ -106,7 +106,11 @@ def UACheckView(request):
     if browser.lower().find('chrome') != -1:
         is_chrome = True
 
-    return HttpResponse(json.dumps({'is_mobile': is_mobile, 'is_chrome': is_chrome}), content_type="application/json")
+    is_android = False
+    if os.lower().find('android') != -1:
+        is_android = True
+
+    return HttpResponse(json.dumps({'is_mobile': is_mobile, 'is_chrome': is_chrome, 'is_android': is_android}), content_type="application/json")
 
 @csrf_exempt
 def UserNavView(request):
