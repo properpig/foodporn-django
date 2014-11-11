@@ -1008,7 +1008,7 @@ def SendVerification(request):
         # else:
         #     forward_link = "https://usan.typeform.com/to/OQEMn8"
 
-        forward_link = "https://usan.typeform.com/to/umGlDT"
+        forward_link = "https://usan.typeform.com/to/nN9Lb6"
 
         return HttpResponse(json.dumps({'success': msg.date_updated, 'link': forward_link}), content_type="application/json")
 
