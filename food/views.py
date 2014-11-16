@@ -926,7 +926,7 @@ def ImageListView(request):
     images = images + [obj for obj in User.objects.values('photo')]
     images = images + [obj for obj in Restaurant.objects.values('photo')]
     images = images + [obj for obj in Food.objects.values('photo')]
-    # images = images + [obj for obj in Review.objects.values('photo')]
+    images = images + [obj for obj in Review.objects.values('photo')]
 
     images = images + [obj for obj in Photo.objects.values('url')]
 
